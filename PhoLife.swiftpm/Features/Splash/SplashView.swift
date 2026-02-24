@@ -21,6 +21,7 @@ struct SplashView: View {
     @State private var steamActive = false
     @State private var ambientGlow = false
     @State private var exitTransition = false
+    @State private var bowlPulse = false
     @State private var ingredientArrived: Set<Int> = []
     @State private var ingredientStarted: Set<Int> = []
 
@@ -170,7 +171,7 @@ struct SplashView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 300, height: 300)
-                .scaleEffect(bowlVisible ? (ingredientArrived.count == 8 ? 1.0 : 1.0) : 0.7)
+                .scaleEffect(bowlVisible ? 1.0 : 0.7)
                 .opacity(bowlVisible ? 1 : 0)
                 .accessibilityLabel("A beautiful bowl of Vietnamese pho")
 
@@ -178,8 +179,8 @@ struct SplashView: View {
             steamOverlay
         }
         // Warm pulse when all ingredients arrive
-        .scaleEffect(ingredientArrived.count == 8 ? 1.0 : 1.0)
-        .animation(.spring(duration: 0.4, bounce: 0.2), value: ingredientArrived.count == 8)
+        .scaleEffect(bowlPulse ? 1.05 : 1.0)
+        .animation(.spring(duration: 0.4, bounce: 0.2), value: bowlPulse)
     }
 
     private var steamOverlay: some View {
@@ -334,8 +335,17 @@ struct SplashView: View {
             }
         }
 
+        // Bowl pulse when all ingredients arrived
+        withAnimation(.spring(duration: 0.3, bounce: 0.3)) {
+            bowlPulse = true
+        }
+        try? await Task.sleep(for: .seconds(0.3))
+        withAnimation(.spring(duration: 0.3)) {
+            bowlPulse = false
+        }
+
         // Exit
-        try? await Task.sleep(for: .seconds(0.8))
+        try? await Task.sleep(for: .seconds(0.5))
         withAnimation(.easeInOut(duration: 0.5)) {
             exitTransition = true
         }
