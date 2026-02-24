@@ -364,7 +364,7 @@ class AssembleBowlScene: SKScene {
         title.text = "Build Your Bowl"
         title.fontSize = 34
         title.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
-        title.position = CGPoint(x: size.width / 2, y: size.height - 60)
+        title.position = CGPoint(x: size.width / 2, y: size.height - 100)
         title.horizontalAlignmentMode = .center
         title.verticalAlignmentMode = .center
         title.zPosition = 100
@@ -375,7 +375,7 @@ class AssembleBowlScene: SKScene {
         stepLabel.text = "Step 1/4"
         stepLabel.fontSize = 22
         stepLabel.fontColor = SKColor(white: 1.0, alpha: 0.7)
-        stepLabel.position = CGPoint(x: size.width / 2, y: size.height - 95)
+        stepLabel.position = CGPoint(x: size.width / 2, y: size.height - 130)
         stepLabel.horizontalAlignmentMode = .center
         stepLabel.verticalAlignmentMode = .center
         stepLabel.zPosition = 100
@@ -464,6 +464,7 @@ class AssembleBowlScene: SKScene {
         }
 
         guard let card = tappedCard else { return }
+        guard card.userData?["disabled"] as? Bool != true else { return }
         guard let ingredientName = card.userData?["ingredientName"] as? String else { return }
 
         let expectedName = correctOrder[currentStep]
@@ -535,23 +536,27 @@ class AssembleBowlScene: SKScene {
 
         let shrink = SKAction.scale(to: 0.6, duration: arcDuration)
 
-        let dropSequence = SKAction.sequence([
-            SKAction.group([followArc, shrink]),
+        // Run the arc animation on the flying node
+        flyingNode.run(SKAction.group([followArc, shrink]))
+
+        // Run the post-arc logic on the scene itself so removing flyingNode
+        // doesn't kill the continuation (the previous bug)
+        run(SKAction.sequence([
+            SKAction.wait(forDuration: arcDuration),
             SKAction.run { [weak self] in
                 flyingNode.removeFromParent()
                 self?.addLayerToBowl(ingredientIndex: ingredientIndex)
                 HapticManager.shared.heavy()
             },
-            SKAction.wait(forDuration: 0.15)
-        ])
-
-        flyingNode.run(dropSequence) { [weak self] in
-            guard let self = self else { return }
-            self.currentStep += 1
-            self.updateStepLabel()
-            self.updateHintPulse()
-            self.gameActive = true
-        }
+            SKAction.wait(forDuration: 0.15),
+            SKAction.run { [weak self] in
+                guard let self = self else { return }
+                self.currentStep += 1
+                self.updateStepLabel()
+                self.updateHintPulse()
+                self.gameActive = true
+            }
+        ]))
 
         // Show points
         let points = pointsForAttempt(attemptCount)

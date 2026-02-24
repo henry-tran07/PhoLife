@@ -19,9 +19,9 @@ struct CompletionView: View {
     // MARK: - Computed
 
     private var overallStars: Int {
-        if gameState.totalStars > 21 {
+        if gameState.totalStars >= 20 {
             return 3
-        } else if gameState.totalStars > 15 {
+        } else if gameState.totalStars >= 12 {
             return 2
         } else {
             return 1
@@ -55,12 +55,6 @@ struct CompletionView: View {
 
                 // Overall star rating
                 StarRatingView(stars: overallStars, animated: true)
-                    .opacity(starsVisible ? 1 : 0)
-
-                // Total stars count
-                Text("\(gameState.totalStars) / 24 Stars")
-                    .font(.system(size: 24, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
                     .opacity(starsVisible ? 1 : 0)
 
                 // Earned title

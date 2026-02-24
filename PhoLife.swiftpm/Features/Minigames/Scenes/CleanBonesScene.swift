@@ -326,34 +326,72 @@ class CleanBonesScene: SKScene {
         let appear = SKAction.scale(to: 1.0, duration: 0.2)
         appear.timingMode = .easeOut
 
-        // Rise with gentle wobble
+        // Rise
         let rise = SKAction.moveTo(y: targetY, duration: riseDuration)
         rise.timingMode = .easeIn
 
+        // Wobble and pulse run independently
         let wobble = SKAction.repeatForever(
             SKAction.sequence([
                 SKAction.moveBy(x: wobbleAmplitude, y: 0, duration: wobblePeriod / 2),
                 SKAction.moveBy(x: -wobbleAmplitude, y: 0, duration: wobblePeriod / 2)
             ])
         )
+        bubble.run(wobble, withKey: "wobble")
 
-        // Slight pulsing for organic feel
         let pulse = SKAction.repeatForever(
             SKAction.sequence([
                 SKAction.scale(to: 1.05, duration: 0.4),
                 SKAction.scale(to: 0.95, duration: 0.4)
             ])
         )
+        bubble.run(pulse, withKey: "pulse")
 
-        // Fade out at the top if not tapped
+        // Main lifecycle: appear → rise → auto-pop at top
         let lifetime = SKAction.sequence([
             appear,
-            SKAction.group([rise, wobble, pulse]),
-            SKAction.fadeOut(withDuration: 0.3),
-            SKAction.removeFromParent()
+            rise,
+            SKAction.run { [weak self, weak bubble] in
+                guard let self = self, let bubble = bubble, bubble.name == "bubble" else { return }
+                self.autoPopBubble(bubble)
+            }
         ])
 
         bubble.run(lifetime, withKey: "lifetime")
+    }
+
+    // MARK: - Auto Pop (bubble reached top)
+
+    private func autoPopBubble(_ bubble: SKShapeNode) {
+        bubble.name = nil
+        bubble.removeAllActions()
+
+        let bubblePosition = bubble.position
+
+        // Small splatter particles
+        spawnPopParticles(at: bubblePosition, color: bubble.fillColor)
+
+        // Expanding ring
+        let ring = SKShapeNode(circleOfRadius: bubble.frame.width / 4)
+        ring.fillColor = .clear
+        ring.strokeColor = SKColor(white: 1.0, alpha: 0.25)
+        ring.lineWidth = 1.5
+        ring.position = bubblePosition
+        ring.zPosition = 10
+        addChild(ring)
+        ring.run(.sequence([
+            .group([.scale(to: 2.5, duration: 0.2), .fadeOut(withDuration: 0.2)]),
+            .removeFromParent()
+        ]))
+
+        // Pop animation
+        bubble.run(.sequence([
+            .group([
+                .scale(to: 1.4, duration: 0.12),
+                .fadeOut(withDuration: 0.12)
+            ]),
+            .removeFromParent()
+        ]))
     }
 
     // MARK: - Touch Handling

@@ -83,7 +83,7 @@ class TopItOffScene: SKScene {
         title.text = "Top It Off"
         title.fontSize = 32
         title.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
-        title.position = CGPoint(x: size.width / 2, y: size.height - 60)
+        title.position = CGPoint(x: size.width / 2, y: size.height - 100)
         title.horizontalAlignmentMode = .center
         title.verticalAlignmentMode = .center
         addChild(title)
@@ -93,7 +93,7 @@ class TopItOffScene: SKScene {
         subtitle.text = "Match each topping to its role"
         subtitle.fontSize = 18
         subtitle.fontColor = SKColor(white: 1.0, alpha: 0.5)
-        subtitle.position = CGPoint(x: size.width / 2, y: size.height - 90)
+        subtitle.position = CGPoint(x: size.width / 2, y: size.height - 130)
         subtitle.horizontalAlignmentMode = .center
         subtitle.verticalAlignmentMode = .center
         addChild(subtitle)
@@ -562,15 +562,15 @@ class TopItOffScene: SKScene {
 
         // Determine stars and score
         let stars: Int
-        if totalFlips <= 12 {
+        if totalFlips < 30 {
             stars = 3
-        } else if totalFlips <= 18 {
+        } else if totalFlips < 40 {
             stars = 2
         } else {
             stars = 1
         }
 
-        let score = max(0, 100 - (totalFlips - 12) * 5)
+        let score = max(10, 100 - max(0, totalFlips - 12) * 2)
 
         // Celebratory delay before reporting completion
         run(SKAction.sequence([

@@ -39,7 +39,7 @@ class SeasonBrothScene: SKScene {
     // MARK: - Game State
 
     private var currentAttempt: Int = 0
-    private let maxAttempts: Int = 3
+    private let maxAttempts: Int = 1
     private var bestScore: Int = 0
     private var bestStars: Int = 1
     private var gameEnded: Bool = false
@@ -164,17 +164,17 @@ class SeasonBrothScene: SKScene {
 
     private func setupHarmonyMeter() {
         let centerX = size.width / 2
-        let arcCenterY = size.height * 0.62 + 140
+        let arcCenterY = size.height * 0.62  // inside the bowl
 
         // The semicircular arc background
-        let arcRadius: CGFloat = 60
+        let arcRadius: CGFloat = 45
         let bgArcPath = CGMutablePath()
         bgArcPath.addArc(center: .zero, radius: arcRadius,
                          startAngle: .pi, endAngle: 0, clockwise: false)
         let bgArc = SKShapeNode(path: bgArcPath)
         bgArc.position = CGPoint(x: centerX, y: arcCenterY)
-        bgArc.strokeColor = SKColor(white: 0.3, alpha: 0.5)
-        bgArc.lineWidth = 8
+        bgArc.strokeColor = SKColor(white: 0.3, alpha: 0.4)
+        bgArc.lineWidth = 6
         bgArc.fillColor = .clear
         bgArc.lineCap = .round
         bgArc.zPosition = 5
@@ -184,7 +184,7 @@ class SeasonBrothScene: SKScene {
         harmonyArc = SKShapeNode(path: bgArcPath)
         harmonyArc.position = CGPoint(x: centerX, y: arcCenterY)
         harmonyArc.strokeColor = SKColor(red: 0.2, green: 0.85, blue: 0.3, alpha: 1.0)
-        harmonyArc.lineWidth = 8
+        harmonyArc.lineWidth = 6
         harmonyArc.fillColor = .clear
         harmonyArc.lineCap = .round
         harmonyArc.zPosition = 6
@@ -193,9 +193,9 @@ class SeasonBrothScene: SKScene {
         // "Balance" label
         harmonyLabel = SKLabelNode(fontNamed: "SFProRounded-Medium")
         harmonyLabel.text = "Balance"
-        harmonyLabel.fontSize = 16
-        harmonyLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)
-        harmonyLabel.position = CGPoint(x: centerX, y: arcCenterY - 14)
+        harmonyLabel.fontSize = 14
+        harmonyLabel.fontColor = SKColor(white: 1.0, alpha: 0.5)
+        harmonyLabel.position = CGPoint(x: centerX, y: arcCenterY - 10)
         harmonyLabel.horizontalAlignmentMode = .center
         harmonyLabel.verticalAlignmentMode = .center
         harmonyLabel.zPosition = 7
@@ -235,7 +235,7 @@ class SeasonBrothScene: SKScene {
         harmonyArc.strokeColor = arcColor
 
         // Redraw the arc to represent the harmony level
-        let arcRadius: CGFloat = 60
+        let arcRadius: CGFloat = 45
         let sweepAngle = CGFloat.pi * harmony
         let arcPath = CGMutablePath()
         arcPath.addArc(center: .zero, radius: arcRadius,
@@ -357,12 +357,12 @@ class SeasonBrothScene: SKScene {
     // MARK: - HUD
 
     private func setupHUD() {
-        // Attempt label at the top
+        // Title label below progress bar
         attemptLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
-        attemptLabel.text = "Attempt 1/\(maxAttempts)"
+        attemptLabel.text = "Season the Broth"
         attemptLabel.fontSize = 28
         attemptLabel.fontColor = .white
-        attemptLabel.position = CGPoint(x: size.width / 2, y: size.height - 60)
+        attemptLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
         attemptLabel.horizontalAlignmentMode = .center
         attemptLabel.verticalAlignmentMode = .center
         attemptLabel.zPosition = 100
@@ -373,7 +373,7 @@ class SeasonBrothScene: SKScene {
         instructionLabel.text = "Adjust the sliders to find the perfect balance"
         instructionLabel.fontSize = 18
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.5)
-        instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 90)
+        instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 130)
         instructionLabel.horizontalAlignmentMode = .center
         instructionLabel.verticalAlignmentMode = .center
         instructionLabel.zPosition = 100
@@ -599,30 +599,12 @@ class SeasonBrothScene: SKScene {
             bestStars = attemptStars
         }
 
-        // Determine feedback text and color
-        let feedbackText: String
-        let feedbackColor: SKColor
-        if attemptScore >= 100 {
-            feedbackText = "Perfect Harmony!"
-            feedbackColor = SKColor(red: 0.2, green: 0.9, blue: 0.35, alpha: 1.0)
-        } else if attemptScore >= 75 {
-            feedbackText = "Almost There..."
-            feedbackColor = SKColor(red: 0.95, green: 0.85, blue: 0.25, alpha: 1.0)
-        } else {
-            feedbackText = "Keep Adjusting"
-            feedbackColor = SKColor(red: 0.95, green: 0.5, blue: 0.25, alpha: 1.0)
-        }
-
         // Haptic feedback
         if attemptScore >= 100 {
             HapticManager.shared.success()
             AudioManager.shared.playSFX("success-chime")
         } else if attemptScore >= 75 {
             HapticManager.shared.medium()
-            AudioManager.shared.playSFX("success-chime")
-        } else if attemptScore < 50 {
-            HapticManager.shared.light()
-            AudioManager.shared.playSFX("error-buzz")
         } else {
             HapticManager.shared.light()
         }
@@ -634,8 +616,10 @@ class SeasonBrothScene: SKScene {
             SKAction.scale(to: 1.0, duration: 0.06)
         ]))
 
-        // Show feedback
-        showFeedback(text: feedbackText, color: feedbackColor, score: attemptScore)
+        // Only show feedback for perfect score
+        if attemptScore >= 100 {
+            showFeedback(text: "Perfect Harmony!", color: SKColor(red: 0.2, green: 0.9, blue: 0.35, alpha: 1.0), score: attemptScore)
+        }
 
         // Bowl pulse effect on taste
         brothBowlFill.run(SKAction.sequence([
@@ -649,25 +633,14 @@ class SeasonBrothScene: SKScene {
             SKAction.fadeAlpha(to: 1.0, duration: 0.3)
         ]))
 
-        // Check if game should end
-        if currentAttempt >= maxAttempts || attemptScore >= 100 {
-            // Game ends
-            gameEnded = true
-            run(SKAction.sequence([
-                SKAction.wait(forDuration: 2.0),
-                SKAction.run { [weak self] in
-                    self?.finishGame()
-                }
-            ]))
-        } else {
-            // Reset sliders for next attempt after delay
-            run(SKAction.sequence([
-                SKAction.wait(forDuration: 1.8),
-                SKAction.run { [weak self] in
-                    self?.resetForNextAttempt()
-                }
-            ]))
-        }
+        // Single attempt — end the game
+        gameEnded = true
+        run(SKAction.sequence([
+            SKAction.wait(forDuration: 2.0),
+            SKAction.run { [weak self] in
+                self?.finishGame()
+            }
+        ]))
     }
 
     private func showFeedback(text: String, color: SKColor, score: Int) {

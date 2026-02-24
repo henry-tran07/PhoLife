@@ -133,7 +133,7 @@ class ToastSpicesScene: SKScene {
     // MARK: - HUD
 
     private func setupHUD() {
-        let hudY = size.height - 50
+        let hudY = size.height - 100
 
         // Score label — top-left
         scoreLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
