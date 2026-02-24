@@ -30,11 +30,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: ".",
-            resources: [
-                .process("Resources/Sounds"),
-                .process("Resources/Data")
-            ]
+            path: "."
         )
     ]
 )
