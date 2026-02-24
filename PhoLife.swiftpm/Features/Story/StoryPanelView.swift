@@ -21,15 +21,12 @@ struct StoryPanelView: View {
             warmBackground
                 .ignoresSafeArea()
 
-            // Placeholder image area — fills the screen
-            RoundedRectangle(cornerRadius: 24)
-                .fill(placeholderColor)
-                .overlay {
-                    Text(panel.imageName)
-                        .font(.system(size: 16, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.25))
-                }
-                .padding(24)
+            // Panel image — fills the screen
+            Image(panel.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
                 .ignoresSafeArea()
 
             // Text overlay

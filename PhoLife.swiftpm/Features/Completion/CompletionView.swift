@@ -12,6 +12,8 @@ struct CompletionView: View {
     private let warmAmber = Color(red: 212 / 255, green: 165 / 255, blue: 116 / 255)  // #D4A574
     private let cream = Color(red: 1.0, green: 248 / 255, blue: 220 / 255)             // #FFF8DC
 
+    @State private var bowlVisible = false
+
     // MARK: - Computed
 
     private var overallStars: Int {
@@ -34,9 +36,14 @@ struct CompletionView: View {
             VStack(spacing: 20) {
                 Spacer()
 
-                // Bowl placeholder
-                Text("\u{1F35C}")
-                    .font(.system(size: 100))
+                // Bowl image
+                Image("completion-bowl")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 260, height: 260)
+                    .shadow(color: .orange.opacity(0.4), radius: 30)
+                    .scaleEffect(bowlVisible ? 1.0 : 0.5)
+                    .opacity(bowlVisible ? 1 : 0)
 
                 // Title
                 Text("Your Bowl is Ready!")
@@ -77,6 +84,11 @@ struct CompletionView: View {
                         .background(warmAmber, in: Capsule())
                 }
                 .padding(.bottom, 48)
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(duration: 0.8, bounce: 0.3)) {
+                bowlVisible = true
             }
         }
         .transition(.opacity)

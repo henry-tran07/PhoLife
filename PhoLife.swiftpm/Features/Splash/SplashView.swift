@@ -24,9 +24,12 @@ struct SplashView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
-                // Bowl placeholder
-                Text("🍜")
-                    .font(.system(size: 120))
+                // Bowl image
+                Image("splash-bowl")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 280, height: 280)
+                    .scaleEffect(bowlVisible ? 1.05 : 1.0)
                     .opacity(bowlVisible ? 1 : 0)
 
                 // Title
@@ -45,7 +48,7 @@ struct SplashView: View {
         .transition(.opacity)
         .onAppear {
             // Staggered fade-in: bowl first, title 0.5s later, subtitle 0.5s after
-            withAnimation(.easeIn(duration: 0.8)) {
+            withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
                 bowlVisible = true
             }
             withAnimation(.easeIn(duration: 0.8).delay(0.5)) {
