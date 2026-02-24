@@ -106,7 +106,7 @@ struct StoryPanelView: View {
             .padding(.vertical, 20)
             .frame(maxWidth: .infinity)
             .glassEffect24()
-            .padding(.horizontal, 40)
+            .padding(.horizontal, 60)
             .opacity(bodyVisible ? 1 : 0)
             .offset(y: bodyVisible ? 0 : 15)
     }
