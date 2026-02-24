@@ -468,6 +468,7 @@ class AssembleBowlScene: SKScene {
         let attemptCount = attempts[currentStep]
 
         HapticManager.shared.medium()
+        AudioManager.shared.playSFX("success-chime")
 
         // Remove hint pulse
         let idx = card.userData?["ingredientIndex"] as? Int ?? 0
@@ -546,6 +547,7 @@ class AssembleBowlScene: SKScene {
         attempts[currentStep] += 1
 
         HapticManager.shared.error()
+        AudioManager.shared.playSFX("error-buzz")
 
         // Shake/wiggle the card
         let wiggle = SKAction.sequence([
@@ -807,6 +809,7 @@ class AssembleBowlScene: SKScene {
         showFloatingPoints("+\(brothPoints)", at: bowlCenter, color: SKColor(red: 0.85, green: 0.68, blue: 0.22, alpha: 1.0))
 
         HapticManager.shared.success()
+        AudioManager.shared.playSFX("pour")
 
         // Phase 0: Brief anticipation pause
         run(SKAction.sequence([

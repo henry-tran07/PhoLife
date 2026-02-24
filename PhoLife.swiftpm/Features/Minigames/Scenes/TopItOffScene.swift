@@ -300,6 +300,7 @@ class TopItOffScene: SKScene {
         // Flip the card
         totalFlips += 1
         flipsLabel.text = "Flips: \(totalFlips)"
+        AudioManager.shared.playSFX("card-flip")
         flipCardFaceUp(card)
 
         flippedCards.append(card)
@@ -402,6 +403,7 @@ class TopItOffScene: SKScene {
             run(SKAction.sequence([
                 SKAction.wait(forDuration: 0.35),
                 SKAction.run { [weak self] in
+                    AudioManager.shared.playSFX("success-chime")
                     self?.playMatchEffect(card1)
                     self?.playMatchEffect(card2)
                 },
@@ -417,6 +419,7 @@ class TopItOffScene: SKScene {
             run(SKAction.sequence([
                 SKAction.wait(forDuration: 1.0),
                 SKAction.run { [weak self] in
+                    AudioManager.shared.playSFX("error-buzz")
                     self?.flipCardFaceDown(card1)
                     self?.flipCardFaceDown(card2)
                 },

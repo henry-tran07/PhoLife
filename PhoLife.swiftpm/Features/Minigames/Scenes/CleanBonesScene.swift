@@ -378,6 +378,7 @@ class CleanBonesScene: SKScene {
 
         // Haptic feedback
         HapticManager.shared.light()
+        AudioManager.shared.playSFX("pop")
 
         // Pop animation: scale up + fade out
         let pop = SKAction.group([

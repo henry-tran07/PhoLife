@@ -48,6 +48,7 @@ class SimmerBrothScene: SKScene {
     private var gustTimeRemaining: TimeInterval = 0
     private var nextGustCountdown: TimeInterval = 4.0
     private var gustWarningActive: Bool = false
+    private var wasInSimmerZone: Bool = false
 
     // MARK: - Layout Constants
 
@@ -847,9 +848,14 @@ class SimmerBrothScene: SKScene {
         temperature = max(0, min(1.0, temperature))
 
         // --- Scoring ---
-        if isInSimmerZone() {
+        let currentlyInZone = isInSimmerZone()
+        if currentlyInZone {
             timeInZone += dt
+            if !wasInSimmerZone {
+                AudioManager.shared.playSFX("success-chime")
+            }
         }
+        wasInSimmerZone = currentlyInZone
 
         // --- Gust scheduling ---
         nextGustCountdown -= dt
@@ -881,6 +887,7 @@ class SimmerBrothScene: SKScene {
 
         // Haptic feedback for gust
         HapticManager.shared.light()
+        AudioManager.shared.playSFX("error-buzz")
     }
 
     // MARK: - End Game

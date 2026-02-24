@@ -472,11 +472,13 @@ class ToastSpicesScene: SKScene {
             score += 2
             showGoldenBurst(at: node.position)
             showFloatingText("+2", color: SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1.0), at: node.position)
+            AudioManager.shared.playSFX("success-chime")
         } else {
             wrongCatches += 1
             score -= 1
             showRedFlash(at: node.position)
             showFloatingText("-1", color: SKColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0), at: node.position)
+            AudioManager.shared.playSFX("error-buzz")
 
             // Screen shake on wrong catch
             shakeScreen()

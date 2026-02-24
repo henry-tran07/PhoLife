@@ -355,6 +355,7 @@ class CharAromaticsScene: SKScene {
         roundState = .holding
         indicatorLine.alpha = 1
         instructionLabel.run(.fadeAlpha(to: 0.0, duration: 0.2))
+        AudioManager.shared.playSFX("sizzle")
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -491,6 +492,7 @@ class CharAromaticsScene: SKScene {
             points = 3
             text = "Perfect Char!"
             color = SKColor(red: 0.2, green: 0.9, blue: 0.35, alpha: 1)
+            AudioManager.shared.playSFX("success-chime")
         } else if yellowLow.contains(value) || yellowHigh.contains(value) {
             points = 2
             text = "Good"
@@ -503,6 +505,7 @@ class CharAromaticsScene: SKScene {
             points = 1
             text = "Burned!"
             color = SKColor(red: 0.95, green: 0.3, blue: 0.25, alpha: 1)
+            AudioManager.shared.playSFX("error-buzz")
         }
 
         totalPoints += points

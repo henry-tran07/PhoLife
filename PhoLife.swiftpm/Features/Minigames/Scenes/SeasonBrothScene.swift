@@ -516,6 +516,7 @@ class SeasonBrothScene: SKScene {
 
         // Check if taste button was tapped
         if let button = tasteButton, button.contains(location) {
+            AudioManager.shared.playSFX("button-tap")
             handleTaste()
         }
     }
@@ -597,8 +598,13 @@ class SeasonBrothScene: SKScene {
         // Haptic feedback
         if attemptScore >= 100 {
             HapticManager.shared.success()
+            AudioManager.shared.playSFX("success-chime")
         } else if attemptScore >= 75 {
             HapticManager.shared.medium()
+            AudioManager.shared.playSFX("success-chime")
+        } else if attemptScore < 50 {
+            HapticManager.shared.light()
+            AudioManager.shared.playSFX("error-buzz")
         } else {
             HapticManager.shared.light()
         }

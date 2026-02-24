@@ -251,10 +251,13 @@ class SliceBeefScene: SKScene {
         let qualityText: String
         let qualityColor: SKColor
 
+        AudioManager.shared.playSFX("slice")
+
         if deviation <= perfectThreshold {
             points = 3
             qualityText = "Perfect!"
             qualityColor = SKColor(red: 0.2, green: 0.9, blue: 0.35, alpha: 1)
+            AudioManager.shared.playSFX("success-chime")
         } else if deviation <= goodThreshold {
             points = 2
             qualityText = "Good"
