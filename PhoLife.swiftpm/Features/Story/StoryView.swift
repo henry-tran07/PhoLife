@@ -12,7 +12,6 @@ struct StoryView: View {
     // MARK: - Constants
 
     private let panels = StoryPanel.allPanels
-    private let warmAmber = Color(red: 212 / 255, green: 165 / 255, blue: 116 / 255)  // #D4A574
     private let lastPanelID = 10
 
     // MARK: - Body
@@ -23,7 +22,10 @@ struct StoryView: View {
             ScrollView(.horizontal) {
                 LazyHStack(spacing: 0) {
                     ForEach(panels) { panel in
-                        StoryPanelView(panel: panel)
+                        StoryPanelView(
+                            panel: panel,
+                            onComplete: panel.id == lastPanelID ? onComplete : nil
+                        )
                             .containerRelativeFrame(.horizontal)
                             .scrollTransition(.animated(.easeInOut(duration: 0.4))) { content, phase in
                                 content
@@ -60,37 +62,19 @@ struct StoryView: View {
                 Spacer()
             }
 
-            // Bottom overlay: page dots or "Let's Cook" button
+            // Bottom overlay: page dots
             VStack {
                 Spacer()
 
-                if currentIndex == lastPanelID as Int? {
-                    // Final panel — show "Let's Cook" CTA
-                    Button {
-                        HapticManager.shared.heavy()
-                        onComplete()
-                    } label: {
-                        Text("Let's Cook")
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 48)
-                            .padding(.vertical, 18)
-                            .background(warmAmber, in: Capsule())
+                HStack(spacing: 8) {
+                    ForEach(panels) { panel in
+                        Circle()
+                            .fill(panel.id == currentIndex ? .white : .white.opacity(0.3))
+                            .frame(width: 10, height: 10)
+                            .animation(.easeInOut(duration: 0.25), value: currentIndex)
                     }
-                    .accessibilityLabel("Start cooking minigames")
-                    .padding(.bottom, 48)
-                } else {
-                    // Page indicator dots
-                    HStack(spacing: 8) {
-                        ForEach(panels) { panel in
-                            Circle()
-                                .fill(panel.id == currentIndex ? .white : .white.opacity(0.3))
-                                .frame(width: 10, height: 10)
-                                .animation(.easeInOut(duration: 0.25), value: currentIndex)
-                        }
-                    }
-                    .padding(.bottom, 48)
                 }
+                .padding(.bottom, 48)
             }
         }
     }

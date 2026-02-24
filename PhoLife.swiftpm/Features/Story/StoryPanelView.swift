@@ -3,12 +3,14 @@ import SwiftUI
 struct StoryPanelView: View {
 
     let panel: StoryPanel
+    var onComplete: (() -> Void)? = nil
 
     // MARK: - State
 
     @State private var titleVisible = false
     @State private var bodyVisible = false
     @State private var imageScale: CGFloat = 1.0
+    @State private var displayedCharCount = 0
 
     // MARK: - Constants
 
@@ -18,6 +20,16 @@ struct StoryPanelView: View {
 
     /// True when this panel is the opening title card (no body text).
     private var isTitleCard: Bool { panel.bodyText.isEmpty }
+
+    /// Full body text with un-revealed characters transparent (stable layout during typewriter).
+    private var typewriterText: AttributedString {
+        var result = AttributedString(panel.bodyText)
+        let total = panel.bodyText.count
+        guard displayedCharCount < total else { return result }
+        let visibleEnd = result.characters.index(result.startIndex, offsetBy: displayedCharCount)
+        result[visibleEnd..<result.endIndex].foregroundColor = .clear
+        return result
+    }
 
     // MARK: - Body
 
@@ -36,22 +48,45 @@ struct StoryPanelView: View {
                 .ignoresSafeArea()
                 .accessibilityLabel("Story illustration: \(panel.title)")
 
-            // Text overlay
+            // Text overlay — dynamically sized to fit
             if isTitleCard {
-                // Special layout: centered title card
-                titleText(fontSize: 48)
-                    .padding(.horizontal, 48)
+                ViewThatFits(in: .vertical) {
+                    titleText(fontSize: 52)
+                    titleText(fontSize: 46)
+                    titleText(fontSize: 40)
+                }
+                .padding(.horizontal, 48)
             } else {
                 VStack {
-                    // Title pinned toward top
-                    titleText(fontSize: 42)
-                        .padding(.top, 80)
+                    titleText(fontSize: 46)
+                        .padding(.top, 56)
 
-                    Spacer()
+                    Spacer(minLength: 16)
 
-                    // Body text pinned toward bottom
-                    bodyText
-                        .padding(.bottom, 80)
+                    // "Let's Cook" CTA above the caption on the final panel
+                    if let onComplete {
+                        Button {
+                            HapticManager.shared.heavy()
+                            onComplete()
+                        } label: {
+                            Text("Let's Cook")
+                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 48)
+                                .padding(.vertical, 18)
+                                .background(warmAmber, in: Capsule())
+                        }
+                        .accessibilityLabel("Start cooking minigames")
+                        .padding(.bottom, 16)
+                    }
+
+                    // Body uses ViewThatFits to step down font size
+                    ViewThatFits(in: .vertical) {
+                        bodyText(fontSize: 30)
+                        bodyText(fontSize: 26)
+                        bodyText(fontSize: 22)
+                    }
+                    .padding(.bottom, 56)
                 }
             }
         }
@@ -59,6 +94,7 @@ struct StoryPanelView: View {
             titleVisible = false
             bodyVisible = false
             imageScale = 1.0
+            displayedCharCount = 0
 
             // Title fades & slides in first
             withAnimation(.easeOut(duration: 0.6)) {
@@ -75,6 +111,16 @@ struct StoryPanelView: View {
                 imageScale = 1.08
             }
         }
+        .task(id: panel.id) {
+            guard !isTitleCard else { return }
+            // Wait for glass container fade-in before typing starts
+            try? await Task.sleep(for: .milliseconds(700))
+            for i in 1...panel.bodyText.count {
+                if Task.isCancelled { return }
+                displayedCharCount = i
+                try? await Task.sleep(for: .milliseconds(25))
+            }
+        }
     }
 
     // MARK: - Subviews
@@ -84,7 +130,7 @@ struct StoryPanelView: View {
         Text(panel.title)
             .font(.system(size: fontSize, weight: .bold, design: .rounded))
             .foregroundStyle(warmAmber)
-            .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
+            .shadow(color: .black.opacity(0.6), radius: 5, x: 0, y: 2)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
             .padding(.vertical, 20)
@@ -94,19 +140,20 @@ struct StoryPanelView: View {
     }
 
     @ViewBuilder
-    private var bodyText: some View {
-        Text(panel.bodyText)
-            .font(.system(size: 26, weight: .regular, design: .default))
+    private func bodyText(fontSize: CGFloat) -> some View {
+        Text(typewriterText)
+            .font(.system(size: fontSize, weight: .medium, design: .default))
             .italic()
-            .foregroundStyle(.white.opacity(0.95))
-            .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 1)
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.4), radius: 4, x: 0, y: 2)
             .multilineTextAlignment(.center)
             .lineSpacing(5)
             .padding(.horizontal, 32)
             .padding(.vertical, 20)
-            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.horizontal) { length, _ in
+                length * 0.82
+            }
             .glassEffect24()
-            .padding(.horizontal, 60)
             .opacity(bodyVisible ? 1 : 0)
             .offset(y: bodyVisible ? 0 : 15)
     }
@@ -121,7 +168,7 @@ private extension View {
     @ViewBuilder
     func glassEffect24() -> some View {
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: .rect(cornerRadius: 24))
+            self.glassEffect(.regular, in: .rect(cornerRadius: 24))
         } else {
             self.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
         }
