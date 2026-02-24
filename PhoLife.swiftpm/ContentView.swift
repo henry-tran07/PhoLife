@@ -44,16 +44,19 @@ struct ContentView: View {
         .animation(.smooth(duration: 0.7, extraBounce: 0.02), value: gameState.currentPhase)
         .ignoresSafeArea()
         .statusBarHidden(true)
+        .onAppear {
+            AudioManager.shared.playMusic("background-music", fadeDuration: 2.0)
+        }
         .onChange(of: gameState.currentPhase) { oldPhase, newPhase in
             previousPhase = oldPhase
 
             switch newPhase {
             case .splash, .story:
-                break
+                AudioManager.shared.playMusic("background-music")
             case .minigames:
-                AudioManager.shared.playMusic("gameplay-music")
+                AudioManager.shared.playMusic("background-music")
             case .completion:
-                AudioManager.shared.playMusic("completion-music")
+                AudioManager.shared.playMusic("background-music")
             }
         }
     }
