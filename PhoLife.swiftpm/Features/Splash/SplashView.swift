@@ -1,5 +1,14 @@
 import SwiftUI
 
+// MARK: - File-level Color Constants
+
+private let warmBackground = Color(red: 0.08, green: 0.05, blue: 0.03)
+private let warmAmber = Color(red: 212 / 255, green: 165 / 255, blue: 116 / 255)  // #D4A574
+private let cream = Color(red: 1.0, green: 248 / 255, blue: 220 / 255)             // #FFF8DC
+private let deepAmber = Color(red: 0.75, green: 0.55, blue: 0.35)
+
+// MARK: - SplashView
+
 struct SplashView: View {
 
     var onComplete: () -> Void
@@ -11,37 +20,48 @@ struct SplashView: View {
     @State private var subtitleVisible = false
     @State private var steamActive = false
     @State private var ambientGlow = false
-    @State private var particlesActive = false
     @State private var exitTransition = false
+    @State private var ingredientArrived: Set<Int> = []
+    @State private var ingredientStarted: Set<Int> = []
 
-    // MARK: - Constants
+    // MARK: - Start Positions
 
-    private let warmBackground = Color(red: 0.08, green: 0.05, blue: 0.03)
-    private let warmAmber = Color(red: 212 / 255, green: 165 / 255, blue: 116 / 255)  // #D4A574
-    private let cream = Color(red: 1.0, green: 248 / 255, blue: 220 / 255)             // #FFF8DC
+    private let startPositions: [CGPoint] = [
+        CGPoint(x: -450, y: -200),   // top-left
+        CGPoint(x: 450, y: -250),    // top-right
+        CGPoint(x: -500, y: 50),     // left
+        CGPoint(x: 500, y: 100),     // right
+        CGPoint(x: -400, y: 280),    // bottom-left
+        CGPoint(x: 400, y: 250),     // bottom-right
+        CGPoint(x: -150, y: -320),   // top
+        CGPoint(x: 200, y: 320),     // bottom
+    ]
 
     // MARK: - Body
 
     var body: some View {
         ZStack {
-            // Warm radial gradient background instead of flat color
+            // Layer 1: Background
             backgroundLayer
 
-            // Ambient floating particles
+            // Layer 2: Steam particles (opacity scales with arrivals)
             steamParticlesLayer
+
+            // Layer 3: Ingredient convergence
+            ingredientConvergenceLayer
 
             // Main content
             VStack(spacing: 32) {
                 Spacer()
                     .frame(height: 40)
 
-                // Bowl image with enhanced steam effect
+                // Bowl with radiant glow
                 bowlSection
 
-                // Title with warm glow
+                // Title in glass pill
                 titleSection
 
-                // Subtitle with gentle presence
+                // Subtitle with decorative divider
                 subtitleSection
 
                 Spacer()
@@ -50,17 +70,8 @@ struct SplashView: View {
             .opacity(exitTransition ? 0 : 1)
         }
         .transition(.opacity)
-        .onAppear {
-            startEntranceSequence()
-        }
         .task {
-            try? await Task.sleep(for: .seconds(3.0))
-            // Cinematic exit
-            withAnimation(.easeInOut(duration: 0.5)) {
-                exitTransition = true
-            }
-            try? await Task.sleep(for: .seconds(0.5))
-            onComplete()
+            await runAnimationSequence()
         }
     }
 
@@ -107,8 +118,26 @@ struct SplashView: View {
             ForEach(0..<12, id: \.self) { i in
                 SteamWispView(
                     index: i,
-                    isActive: particlesActive,
+                    isActive: steamActive,
+                    baseOpacityScale: 0.02 + Double(ingredientArrived.count) * 0.008,
                     warmAmber: warmAmber
+                )
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    // MARK: - Ingredient Convergence
+
+    private var ingredientConvergenceLayer: some View {
+        ZStack {
+            ForEach(0..<8, id: \.self) { i in
+                FloatingIngredientView(
+                    index: i,
+                    icon: PhoIngredientIcon.allCases[i],
+                    startPosition: startPositions[i],
+                    isStarted: ingredientStarted.contains(i),
+                    hasArrived: ingredientArrived.contains(i)
                 )
             }
         }
@@ -140,19 +169,22 @@ struct SplashView: View {
             Image("splash-bowl")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 280, height: 280)
-                .scaleEffect(bowlVisible ? 1.0 : 0.85)
+                .frame(width: 300, height: 300)
+                .scaleEffect(bowlVisible ? (ingredientArrived.count == 8 ? 1.0 : 1.0) : 0.7)
                 .opacity(bowlVisible ? 1 : 0)
                 .accessibilityLabel("A beautiful bowl of Vietnamese pho")
 
             // Enhanced organic steam overlay
             steamOverlay
         }
+        // Warm pulse when all ingredients arrive
+        .scaleEffect(ingredientArrived.count == 8 ? 1.0 : 1.0)
+        .animation(.spring(duration: 0.4, bounce: 0.2), value: ingredientArrived.count == 8)
     }
 
     private var steamOverlay: some View {
         ZStack {
-            // Primary steam wisps — organic, varied sizes and timing
+            // Primary steam wisps
             ForEach(0..<5, id: \.self) { i in
                 let baseSize = CGFloat([22, 28, 18, 32, 24][i])
                 let xOffset = CGFloat([-30, -8, 15, 35, -18][i])
@@ -222,6 +254,9 @@ struct SplashView: View {
                         endPoint: .bottomTrailing
                     )
                 )
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+                .glassContainer()
                 .opacity(titleVisible ? 1 : 0)
                 .scaleEffect(titleVisible ? 1.0 : 0.92)
                 .offset(y: titleVisible ? 0 : 8)
@@ -247,36 +282,117 @@ struct SplashView: View {
 
     // MARK: - Animation Sequence
 
-    private func startEntranceSequence() {
-        // Bowl fades in with gentle scale
-        withAnimation(.easeOut(duration: 0.9)) {
-            bowlVisible = true
-        }
-
-        // Steam begins after bowl appears
-        withAnimation(.easeInOut(duration: 1.2).delay(0.4)) {
-            steamActive = true
-        }
-
-        // Ambient background glow breathes
-        withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true).delay(0.3)) {
+    private func runAnimationSequence() async {
+        // 0.0s — ambient glow
+        withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
             ambientGlow = true
         }
 
-        // Title staggered entrance
-        withAnimation(.spring(duration: 0.7, bounce: 0.15).delay(0.6)) {
+        // 0.3s — bowl
+        try? await Task.sleep(for: .seconds(0.3))
+        withAnimation(.spring(duration: 0.8, bounce: 0.2)) {
+            bowlVisible = true
+        }
+        withAnimation(.easeInOut(duration: 1.2).delay(0.2)) {
+            steamActive = true
+        }
+
+        // 0.5s — ingredients wave 1 (indices 0, 1)
+        try? await Task.sleep(for: .seconds(0.2))
+        withAnimation { ingredientStarted.insert(0); ingredientStarted.insert(1) }
+
+        // 0.8s — wave 2 (indices 2, 3)
+        try? await Task.sleep(for: .seconds(0.3))
+        withAnimation { ingredientStarted.insert(2); ingredientStarted.insert(3) }
+
+        // 1.1s — wave 3 (indices 4, 5)
+        try? await Task.sleep(for: .seconds(0.3))
+        withAnimation { ingredientStarted.insert(4); ingredientStarted.insert(5) }
+
+        // 1.4s — wave 4 (indices 6, 7)
+        try? await Task.sleep(for: .seconds(0.3))
+        withAnimation { ingredientStarted.insert(6); ingredientStarted.insert(7) }
+
+        // 1.5s — title
+        try? await Task.sleep(for: .seconds(0.1))
+        withAnimation(.spring(duration: 0.7, bounce: 0.15)) {
             titleVisible = true
         }
 
-        // Subtitle and divider
-        withAnimation(.easeOut(duration: 0.6).delay(1.0)) {
+        // 2.0s — subtitle
+        try? await Task.sleep(for: .seconds(0.5))
+        withAnimation(.easeOut(duration: 0.6)) {
             subtitleVisible = true
         }
 
-        // Particles begin floating
-        withAnimation(.easeIn(duration: 0.8).delay(0.5)) {
-            particlesActive = true
+        // Stagger ingredient arrivals
+        try? await Task.sleep(for: .seconds(0.3))
+        for i in 0..<8 {
+            try? await Task.sleep(for: .seconds(0.15))
+            _ = withAnimation(.easeIn(duration: 0.3)) {
+                ingredientArrived.insert(i)
+            }
         }
+
+        // Exit
+        try? await Task.sleep(for: .seconds(0.8))
+        withAnimation(.easeInOut(duration: 0.5)) {
+            exitTransition = true
+        }
+        try? await Task.sleep(for: .seconds(0.5))
+        onComplete()
+    }
+}
+
+// MARK: - Floating Ingredient View
+
+private struct FloatingIngredientView: View {
+
+    let index: Int
+    let icon: PhoIngredientIcon
+    let startPosition: CGPoint
+    let isStarted: Bool
+    let hasArrived: Bool
+
+    @State private var burstActive = false
+
+    var body: some View {
+        ZStack {
+            // Trailing glow
+            Circle()
+                .fill(warmAmber.opacity(0.15))
+                .frame(width: 40, height: 40)
+                .blur(radius: 8)
+                .opacity(isStarted && !hasArrived ? 0.6 : 0)
+
+            // The icon
+            PhoIngredientIconView(icon: icon, size: 32)
+                .opacity(isStarted && !hasArrived ? 1.0 : (hasArrived ? 0 : 0.3))
+                .scaleEffect(hasArrived ? 0.01 : 1.0)
+
+            // Arrival burst particles
+            if hasArrived {
+                ForEach(0..<3, id: \.self) { i in
+                    Circle()
+                        .fill(warmAmber.opacity(burstActive ? 0 : 0.5))
+                        .frame(width: 6, height: 6)
+                        .offset(
+                            x: burstActive ? CGFloat(cos(Double(i) * 2.094)) * 30 : 0,
+                            y: burstActive ? CGFloat(sin(Double(i) * 2.094)) * 30 : 0
+                        )
+                        .blur(radius: burstActive ? 4 : 0)
+                }
+                .onAppear {
+                    withAnimation(.easeOut(duration: 0.4)) { burstActive = true }
+                }
+            }
+        }
+        .offset(
+            x: isStarted && !hasArrived ? 0 : (hasArrived ? 0 : startPosition.x),
+            y: isStarted && !hasArrived ? 0 : (hasArrived ? 0 : startPosition.y)
+        )
+        .animation(.spring(duration: 1.2, bounce: 0.1), value: isStarted)
+        .animation(.easeIn(duration: 0.3), value: hasArrived)
     }
 }
 
@@ -287,6 +403,7 @@ private struct SteamWispView: View {
 
     let index: Int
     let isActive: Bool
+    var baseOpacityScale: Double = 0.08
     let warmAmber: Color
 
     @State private var drift = false
@@ -304,7 +421,7 @@ private struct SteamWispView: View {
 
     var body: some View {
         Circle()
-            .fill(warmAmber.opacity(isActive ? 0.08 : 0))
+            .fill(warmAmber.opacity(isActive ? baseOpacityScale : 0))
             .frame(width: config.size, height: config.size)
             .blur(radius: config.size * 0.6)
             .offset(
