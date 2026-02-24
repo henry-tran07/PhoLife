@@ -28,15 +28,10 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.6), value: gameState.currentPhase)
         .ignoresSafeArea()
         .statusBarHidden(true)
-        .onAppear {
-            AudioManager.shared.playMusic("splash-music", fadeDuration: 0.5)
-        }
         .onChange(of: gameState.currentPhase) { _, newPhase in
             switch newPhase {
-            case .splash:
-                AudioManager.shared.playMusic("splash-music", fadeDuration: 0.5)
-            case .story:
-                AudioManager.shared.playMusic("story-music")
+            case .splash, .story:
+                break
             case .minigames:
                 AudioManager.shared.playMusic("gameplay-music")
             case .completion:
