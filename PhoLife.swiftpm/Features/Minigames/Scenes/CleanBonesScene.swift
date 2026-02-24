@@ -1,5 +1,4 @@
 import SpriteKit
-import UIKit
 
 class CleanBonesScene: SKScene {
 
@@ -29,6 +28,8 @@ class CleanBonesScene: SKScene {
     private var gameEnded: Bool = false
     private var spawnTimer: TimeInterval = 0
     private var currentSpawnInterval: TimeInterval = 1.0
+    private var sparkle50Triggered = false
+    private var sparkle75Triggered = false
 
     // MARK: - Nodes
 
@@ -49,6 +50,15 @@ class CleanBonesScene: SKScene {
         setupDecorations()
 
         gameActive = true
+
+        // Entrance curtain
+        let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        curtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1.0)
+        curtain.strokeColor = .clear
+        curtain.zPosition = 500
+        addChild(curtain)
+        curtain.run(.sequence([.wait(forDuration: 0.2), .fadeAlpha(to: 0, duration: 0.6), .removeFromParent()]))
     }
 
     // MARK: - Setup
@@ -380,6 +390,10 @@ class CleanBonesScene: SKScene {
         HapticManager.shared.light()
         AudioManager.shared.playSFX("pop")
 
+        // Capture bubble position and radius before removal
+        let bubblePosition = bubble.position
+        let bubbleRadius = bubble.frame.width / 2
+
         // Pop animation: scale up + fade out
         let pop = SKAction.group([
             SKAction.scale(to: 1.5, duration: 0.15),
@@ -388,7 +402,36 @@ class CleanBonesScene: SKScene {
         pop.timingMode = .easeOut
 
         // Spawn small splatter particles on pop
-        spawnPopParticles(at: bubble.position, color: bubble.fillColor)
+        spawnPopParticles(at: bubblePosition, color: bubble.fillColor)
+
+        // Expanding ring on pop
+        let ring = SKShapeNode(circleOfRadius: bubbleRadius * 0.5)
+        ring.fillColor = .clear
+        ring.strokeColor = SKColor(white: 1.0, alpha: 0.4)
+        ring.lineWidth = 2
+        ring.position = bubblePosition
+        ring.zPosition = 10
+        addChild(ring)
+        ring.run(.sequence([
+            .group([.scale(to: 3.0, duration: 0.25), .fadeOut(withDuration: 0.25)]),
+            .removeFromParent()
+        ]))
+
+        // Floating "+1" text
+        let pointLabel = SKLabelNode(text: "+1")
+        pointLabel.fontName = "AvenirNext-Bold"
+        pointLabel.fontSize = 18
+        pointLabel.fontColor = SKColor(white: 1.0, alpha: 0.8)
+        pointLabel.position = bubblePosition
+        pointLabel.zPosition = 15
+        addChild(pointLabel)
+        pointLabel.run(.sequence([
+            .group([.moveBy(x: 0, y: 40, duration: 0.6), .fadeOut(withDuration: 0.6)]),
+            .removeFromParent()
+        ]))
+
+        // Check clarity sparkle thresholds
+        checkClaritySparkles()
 
         bubble.run(SKAction.sequence([pop, SKAction.removeFromParent()]))
     }
@@ -468,7 +511,16 @@ class CleanBonesScene: SKScene {
     private func reportScore() {
         // Calculate percentage
         guard totalBubbles > 0 else {
-            onComplete?(0, 1)
+            let exitCurtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+            exitCurtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+            exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+            exitCurtain.strokeColor = .clear
+            exitCurtain.zPosition = 500
+            addChild(exitCurtain)
+            exitCurtain.run(.sequence([
+                .fadeAlpha(to: 1.0, duration: 0.4),
+                .run { [weak self] in self?.onComplete?(0, 1) }
+            ]))
             return
         }
 
@@ -485,6 +537,60 @@ class CleanBonesScene: SKScene {
         }
 
         HapticManager.shared.success()
-        onComplete?(score, stars)
+
+        let exitCurtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        exitCurtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+        exitCurtain.strokeColor = .clear
+        exitCurtain.zPosition = 500
+        addChild(exitCurtain)
+        exitCurtain.run(.sequence([
+            .fadeAlpha(to: 1.0, duration: 0.4),
+            .run { [weak self] in self?.onComplete?(score, stars) }
+        ]))
+    }
+
+    // MARK: - Clarity Sparkles
+
+    private func checkClaritySparkles() {
+        let ratio = Double(tappedCount) / Double(max(totalBubbles, 1))
+        if ratio >= 0.5 && !sparkle50Triggered {
+            sparkle50Triggered = true
+            spawnClaritySparkles()
+        }
+        if ratio >= 0.75 && !sparkle75Triggered {
+            sparkle75Triggered = true
+            spawnClaritySparkles()
+        }
+    }
+
+    private func spawnClaritySparkles() {
+        for _ in 0..<8 {
+            let sparkle = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...4))
+            sparkle.fillColor = SKColor(white: 1.0, alpha: 0.8)
+            sparkle.strokeColor = .clear
+            sparkle.glowWidth = 3
+            sparkle.position = CGPoint(
+                x: size.width / 2 + CGFloat.random(in: -120...120),
+                y: potRect.midY + CGFloat.random(in: -60...60)
+            )
+            sparkle.zPosition = 12
+            sparkle.setScale(0.1)
+            addChild(sparkle)
+            sparkle.run(.sequence([
+                .group([
+                    .scale(to: 1.0, duration: 0.3),
+                    .fadeAlpha(to: 1.0, duration: 0.3)
+                ]),
+                .wait(forDuration: 0.5),
+                .group([
+                    .scale(to: 0.1, duration: 0.4),
+                    .fadeOut(withDuration: 0.4)
+                ]),
+                .removeFromParent()
+            ]))
+        }
+        HapticManager.shared.medium()
+        AudioManager.shared.playSFX("sparkle")
     }
 }

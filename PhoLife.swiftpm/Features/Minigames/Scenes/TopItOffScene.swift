@@ -53,6 +53,8 @@ class TopItOffScene: SKScene {
     // MARK: - HUD
 
     private var flipsLabel: SKLabelNode!
+    private var matchLabel: SKLabelNode!
+    private var collectBowlNode: SKShapeNode!
 
     // MARK: - Lifecycle
 
@@ -61,6 +63,16 @@ class TopItOffScene: SKScene {
 
         setupHUD()
         setupCards()
+        setupCollectBowl()
+
+        // Scene entrance curtain
+        let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        curtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1.0)
+        curtain.strokeColor = .clear
+        curtain.zPosition = 500
+        addChild(curtain)
+        curtain.run(.sequence([.wait(forDuration: 0.2), .fadeAlpha(to: 0, duration: 0.6), .removeFromParent()]))
     }
 
     // MARK: - HUD Setup
@@ -91,10 +103,21 @@ class TopItOffScene: SKScene {
         flipsLabel.text = "Flips: 0"
         flipsLabel.fontSize = 20
         flipsLabel.fontColor = SKColor(white: 1.0, alpha: 0.7)
-        flipsLabel.position = CGPoint(x: size.width / 2, y: 50)
+        flipsLabel.position = CGPoint(x: size.width / 2 - 80, y: 50)
         flipsLabel.horizontalAlignmentMode = .center
         flipsLabel.verticalAlignmentMode = .center
         addChild(flipsLabel)
+
+        // Match counter
+        matchLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        matchLabel.text = "Matches: 0/6"
+        matchLabel.fontSize = 20
+        matchLabel.fontColor = .white
+        matchLabel.position = CGPoint(x: size.width / 2 + 80, y: 50)
+        matchLabel.horizontalAlignmentMode = .center
+        matchLabel.verticalAlignmentMode = .center
+        matchLabel.zPosition = 100
+        addChild(matchLabel)
     }
 
     // MARK: - Card Setup
@@ -314,6 +337,7 @@ class TopItOffScene: SKScene {
 
     private func flipCardFaceUp(_ card: SKNode) {
         card.userData?["isFlipped"] = true
+        HapticManager.shared.light()
 
         guard let backFace = card.childNode(withName: "backFace"),
               let frontFace = card.childNode(withName: "frontFace") else { return }
@@ -398,14 +422,18 @@ class TopItOffScene: SKScene {
             card1.userData?["isMatched"] = true
             card2.userData?["isMatched"] = true
             matchedPairs += 1
+            matchLabel.text = "Matches: \(matchedPairs)/6"
+            HapticManager.shared.medium()
 
             // Delay briefly to let the flip animation finish, then play match effects
+            let capturedPairID = pairID1
             run(SKAction.sequence([
                 SKAction.wait(forDuration: 0.35),
                 SKAction.run { [weak self] in
                     AudioManager.shared.playSFX("success-chime")
                     self?.playMatchEffect(card1)
                     self?.playMatchEffect(card2)
+                    self?.floatCardsToBowl(card1, card2, pairIndex: capturedPairID)
                 },
                 SKAction.wait(forDuration: 0.3),
                 SKAction.run { [weak self] in
@@ -419,6 +447,7 @@ class TopItOffScene: SKScene {
             run(SKAction.sequence([
                 SKAction.wait(forDuration: 1.0),
                 SKAction.run { [weak self] in
+                    HapticManager.shared.light()
                     AudioManager.shared.playSFX("error-buzz")
                     self?.flipCardFaceDown(card1)
                     self?.flipCardFaceDown(card2)
@@ -547,11 +576,23 @@ class TopItOffScene: SKScene {
         run(SKAction.sequence([
             SKAction.wait(forDuration: 0.6),
             SKAction.run { [weak self] in
+                HapticManager.shared.success()
                 self?.playCompletionCelebration()
             },
             SKAction.wait(forDuration: 1.2),
             SKAction.run { [weak self] in
-                self?.onComplete?(score, stars)
+                guard let self = self else { return }
+                // Scene exit curtain
+                let exitCurtain = SKShapeNode(rectOf: CGSize(width: self.size.width + 20, height: self.size.height + 20))
+                exitCurtain.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
+                exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+                exitCurtain.strokeColor = .clear
+                exitCurtain.zPosition = 500
+                self.addChild(exitCurtain)
+                exitCurtain.run(.sequence([
+                    .fadeAlpha(to: 1.0, duration: 0.4),
+                    .run { [weak self] in self?.onComplete?(score, stars) }
+                ]))
             }
         ]))
     }
@@ -592,5 +633,88 @@ class TopItOffScene: SKScene {
         let fadeOut = SKAction.fadeAlpha(to: 0, duration: 0.3)
 
         doneLabel.run(SKAction.sequence([appear, settle, hold, fadeOut, SKAction.removeFromParent()]))
+    }
+
+    // MARK: - Collect Bowl
+
+    private func setupCollectBowl() {
+        let bowlX = size.width - 130
+        let bowlY: CGFloat = 100
+
+        // Bowl body
+        collectBowlNode = SKShapeNode(ellipseOf: CGSize(width: 120, height: 70))
+        collectBowlNode.fillColor = SKColor(red: 0.90, green: 0.87, blue: 0.80, alpha: 1)
+        collectBowlNode.strokeColor = SKColor(red: 0.75, green: 0.70, blue: 0.62, alpha: 1)
+        collectBowlNode.lineWidth = 2
+        collectBowlNode.position = CGPoint(x: bowlX, y: bowlY)
+        collectBowlNode.zPosition = 2
+        addChild(collectBowlNode)
+
+        // Bowl rim
+        let rim = SKShapeNode(ellipseOf: CGSize(width: 130, height: 78))
+        rim.fillColor = .clear
+        rim.strokeColor = SKColor(red: 0.70, green: 0.65, blue: 0.58, alpha: 1)
+        rim.lineWidth = 2
+        rim.position = CGPoint(x: bowlX, y: bowlY + 5)
+        rim.zPosition = 3
+        addChild(rim)
+
+        // "Bowl" label
+        let bowlLabel = SKLabelNode(text: "Your Bowl")
+        bowlLabel.fontName = "AvenirNext-Medium"
+        bowlLabel.fontSize = 14
+        bowlLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)
+        bowlLabel.position = CGPoint(x: bowlX, y: bowlY - 55)
+        bowlLabel.zPosition = 3
+        addChild(bowlLabel)
+    }
+
+    // MARK: - Float-to-Bowl Animation
+
+    private func floatCardsToBowl(_ card1: SKNode, _ card2: SKNode, pairIndex: Int) {
+        let bowlPos = collectBowlNode.position
+        let floatDelay = SKAction.wait(forDuration: 0.8)
+        let floatToBowl = SKAction.group([
+            .move(to: bowlPos, duration: 0.5),
+            .scale(to: 0.2, duration: 0.5),
+            .fadeAlpha(to: 0.4, duration: 0.5)
+        ])
+        floatToBowl.timingMode = .easeIn
+        let sequence = SKAction.sequence([floatDelay, floatToBowl, .removeFromParent()])
+
+        card1.run(sequence)
+        card2.run(sequence)
+
+        // Add a topping indicator in the bowl after cards arrive
+        run(.sequence([.wait(forDuration: 1.3), .run { [weak self] in
+            self?.addToppingToBowl(pairIndex: pairIndex)
+        }]))
+    }
+
+    private func addToppingToBowl(pairIndex: Int) {
+        let toppingEmojis = ["\u{1F33F}", "\u{1FAD8}", "\u{1F336}\u{FE0F}", "\u{1F34B}", "\u{1F9C5}", "\u{1FAD1}"]
+        let emoji = toppingEmojis[safe: pairIndex] ?? "\u{2726}"
+        let label = SKLabelNode(text: emoji)
+        label.fontSize = 22
+        label.position = CGPoint(
+            x: collectBowlNode.position.x + CGFloat.random(in: -25...25),
+            y: collectBowlNode.position.y + CGFloat.random(in: -10...15)
+        )
+        label.zPosition = 4
+        label.setScale(0.1)
+        addChild(label)
+        label.run(.sequence([
+            .scale(to: 1.0, duration: 0.2),
+            .repeatForever(.sequence([
+                .scale(to: 1.05, duration: 0.8),
+                .scale(to: 0.95, duration: 0.8)
+            ]))
+        ]))
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }

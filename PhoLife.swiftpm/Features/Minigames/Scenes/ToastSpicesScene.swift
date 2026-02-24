@@ -42,6 +42,7 @@ class ToastSpicesScene: SKScene {
 
     // MARK: - Game State
 
+    private var comboCount = 0
     private var score: Int = 0
     private var correctCatches: Int = 0
     private var wrongCatches: Int = 0
@@ -71,7 +72,33 @@ class ToastSpicesScene: SKScene {
 
         setupBackground()
         setupHUD()
+
+        // Toasting pan at bottom
+        let pan = SKShapeNode(ellipseOf: CGSize(width: 300, height: 100))
+        pan.fillColor = SKColor(red: 0.15, green: 0.15, blue: 0.15, alpha: 1)
+        pan.strokeColor = SKColor(red: 0.25, green: 0.25, blue: 0.25, alpha: 1)
+        pan.lineWidth = 2
+        pan.position = CGPoint(x: size.width / 2, y: 30)
+        pan.zPosition = 1
+        addChild(pan)
+        // Add pan handle
+        let handle = SKShapeNode(rectOf: CGSize(width: 100, height: 16), cornerRadius: 8)
+        handle.fillColor = SKColor(red: 0.2, green: 0.18, blue: 0.15, alpha: 1)
+        handle.strokeColor = .clear
+        handle.position = CGPoint(x: size.width / 2 + 200, y: 30)
+        handle.zPosition = 1
+        addChild(handle)
+
         startGame()
+
+        // Scene entrance curtain
+        let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        curtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1.0)
+        curtain.strokeColor = .clear
+        curtain.zPosition = 500
+        addChild(curtain)
+        curtain.run(.sequence([.wait(forDuration: 0.2), .fadeAlpha(to: 0, duration: 0.6), .removeFromParent()]))
     }
 
     // MARK: - Background
@@ -113,7 +140,7 @@ class ToastSpicesScene: SKScene {
         scoreLabel.text = "Score: 0"
         scoreLabel.fontSize = 28
         scoreLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.4, alpha: 1.0)
-        scoreLabel.position = CGPoint(x: 30, y: hudY)
+        scoreLabel.position = CGPoint(x: 80, y: hudY)
         scoreLabel.horizontalAlignmentMode = .left
         scoreLabel.verticalAlignmentMode = .center
         scoreLabel.zPosition = 100
@@ -135,7 +162,7 @@ class ToastSpicesScene: SKScene {
         wrongLabel.text = "Wrong: 0/3"
         wrongLabel.fontSize = 26
         wrongLabel.fontColor = SKColor(red: 1.0, green: 0.6, blue: 0.5, alpha: 1.0)
-        wrongLabel.position = CGPoint(x: size.width - 30, y: hudY)
+        wrongLabel.position = CGPoint(x: size.width - 80, y: hudY)
         wrongLabel.horizontalAlignmentMode = .right
         wrongLabel.verticalAlignmentMode = .center
         wrongLabel.zPosition = 100
@@ -184,6 +211,7 @@ class ToastSpicesScene: SKScene {
     private func endGame() {
         guard gameActive else { return }
         gameActive = false
+        HapticManager.shared.success()
 
         // Remove all remaining spice nodes
         enumerateChildNodes(withName: spiceNodeName) { node, _ in
@@ -198,12 +226,17 @@ class ToastSpicesScene: SKScene {
         let stars = calculateStars()
         let finalScore = max(0, correctCatches * 20 - wrongCatches * 10)
 
-        // Brief delay then report
-        run(SKAction.sequence([
-            SKAction.wait(forDuration: 0.8),
-            SKAction.run { [weak self] in
-                self?.onComplete?(finalScore, stars)
-            }
+        // Scene exit curtain
+        let exitCurtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        exitCurtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+        exitCurtain.strokeColor = .clear
+        exitCurtain.zPosition = 500
+        addChild(exitCurtain)
+        exitCurtain.run(.sequence([
+            .wait(forDuration: 0.8),
+            .fadeAlpha(to: 1.0, duration: 0.4),
+            .run { [weak self] in self?.onComplete?(finalScore, stars) }
         ]))
     }
 
@@ -470,12 +503,40 @@ class ToastSpicesScene: SKScene {
         if isCorrect {
             correctCatches += 1
             score += 2
+            comboCount += 1
+            HapticManager.shared.medium()
             showGoldenBurst(at: node.position)
             showFloatingText("+2", color: SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1.0), at: node.position)
             AudioManager.shared.playSFX("success-chime")
+
+            // Show combo counter when combo >= 2
+            if comboCount >= 2 {
+                let comboLabel = SKLabelNode(fontNamed: "SFProRounded-Heavy")
+                comboLabel.text = "Combo x\(comboCount)!"
+                comboLabel.fontSize = 32
+                comboLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1.0)
+                comboLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
+                comboLabel.horizontalAlignmentMode = .center
+                comboLabel.verticalAlignmentMode = .center
+                comboLabel.zPosition = 110
+                comboLabel.setScale(0.5)
+                addChild(comboLabel)
+                comboLabel.run(SKAction.sequence([
+                    SKAction.group([
+                        SKAction.scale(to: 1.2, duration: 0.15),
+                        SKAction.fadeAlpha(to: 1.0, duration: 0.1)
+                    ]),
+                    SKAction.scale(to: 1.0, duration: 0.1),
+                    SKAction.wait(forDuration: 0.5),
+                    SKAction.fadeOut(withDuration: 0.3),
+                    SKAction.removeFromParent()
+                ]))
+            }
         } else {
             wrongCatches += 1
             score -= 1
+            comboCount = 0
+            HapticManager.shared.error()
             showRedFlash(at: node.position)
             showFloatingText("-1", color: SKColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0), at: node.position)
             AudioManager.shared.playSFX("error-buzz")

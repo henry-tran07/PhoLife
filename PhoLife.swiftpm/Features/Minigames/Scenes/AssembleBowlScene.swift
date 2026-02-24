@@ -90,6 +90,15 @@ class AssembleBowlScene: SKScene {
 
         gameActive = true
         updateHintPulse()
+
+        // Scene entrance curtain
+        let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        curtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1.0)
+        curtain.strokeColor = .clear
+        curtain.zPosition = 500
+        addChild(curtain)
+        curtain.run(.sequence([.wait(forDuration: 0.2), .fadeAlpha(to: 0, duration: 0.6), .removeFromParent()]))
     }
 
     // MARK: - Background
@@ -235,6 +244,14 @@ class AssembleBowlScene: SKScene {
                     SKAction.fadeAlpha(to: 1.0, duration: 0.35)
                 ])
             ]))
+
+            // Gentle floating sway animation
+            let sway = SKAction.repeatForever(.sequence([
+                .moveBy(x: 0, y: 6, duration: 1.0 + Double(index) * 0.15),
+                .moveBy(x: 0, y: -6, duration: 1.0 + Double(index) * 0.15)
+            ]))
+            sway.timingMode = .easeInEaseOut
+            card.run(sway, withKey: "sway")
         }
     }
 
@@ -1074,6 +1091,19 @@ class AssembleBowlScene: SKScene {
         )
         run(continuedDroplets)
 
+        // Add a gentle wave motion to broth after it settles
+        run(SKAction.sequence([
+            SKAction.wait(forDuration: 1.6),
+            SKAction.run {
+                let wave = SKAction.repeatForever(.sequence([
+                    .moveBy(x: 3, y: 0, duration: 0.8),
+                    .moveBy(x: -3, y: 0, duration: 0.8)
+                ]))
+                wave.timingMode = .easeInEaseOut
+                brothFillNode.run(wave)
+            }
+        ]))
+
         // After fill completes, move to steam burst
         run(SKAction.sequence([
             SKAction.wait(forDuration: 1.6),
@@ -1147,14 +1177,14 @@ class AssembleBowlScene: SKScene {
                 guard let shape = node as? SKShapeNode else { return }
                 let progress = elapsed / 0.3
                 shape.fillColor = SKColor(red: 1.0, green: 0.90, blue: 0.55,
-                                          alpha: 0.18 * progress)
+                                          alpha: 0.25 * progress)
             },
             SKAction.wait(forDuration: 0.6),
             SKAction.customAction(withDuration: 0.6) { node, elapsed in
                 guard let shape = node as? SKShapeNode else { return }
                 let progress = elapsed / 0.6
                 shape.fillColor = SKColor(red: 1.0, green: 0.90, blue: 0.55,
-                                          alpha: 0.18 * (1 - progress))
+                                          alpha: 0.25 * (1 - progress))
             },
             SKAction.removeFromParent()
         ]))
@@ -1304,8 +1334,8 @@ class AssembleBowlScene: SKScene {
     // MARK: - Broth Surface Shimmer
 
     private func spawnBrothShimmer() {
-        // Sparkling golden highlights on the broth surface
-        for _ in 0..<12 {
+        // Sparkling golden highlights on the broth surface — extended for 3-4 seconds of visibility
+        for _ in 0..<16 {
             let sparkle = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...6))
             sparkle.fillColor = SKColor(red: 1.0, green: 0.92, blue: 0.60, alpha: 0.0)
             sparkle.strokeColor = .clear
@@ -1317,14 +1347,17 @@ class AssembleBowlScene: SKScene {
             sparkle.zPosition = 68
             gameLayer.addChild(sparkle)
 
-            let delay = Double.random(in: 0.2...1.5)
+            let delay = Double.random(in: 0.2...1.8)
             let twinkle = SKAction.sequence([
                 SKAction.wait(forDuration: delay),
-                SKAction.fadeAlpha(to: CGFloat.random(in: 0.5...0.9), duration: 0.3),
-                SKAction.fadeAlpha(to: 0.0, duration: 0.4),
+                SKAction.fadeAlpha(to: CGFloat.random(in: 0.5...0.9), duration: 0.4),
+                SKAction.fadeAlpha(to: 0.2, duration: 0.5),
+                SKAction.wait(forDuration: Double.random(in: 0.3...0.7)),
+                SKAction.fadeAlpha(to: CGFloat.random(in: 0.4...0.8), duration: 0.35),
+                SKAction.fadeAlpha(to: 0.15, duration: 0.4),
                 SKAction.wait(forDuration: Double.random(in: 0.2...0.5)),
-                SKAction.fadeAlpha(to: CGFloat.random(in: 0.3...0.7), duration: 0.25),
-                SKAction.fadeOut(withDuration: 0.5),
+                SKAction.fadeAlpha(to: CGFloat.random(in: 0.3...0.7), duration: 0.3),
+                SKAction.fadeOut(withDuration: 0.6),
                 SKAction.removeFromParent()
             ])
             sparkle.run(twinkle)
@@ -1351,6 +1384,17 @@ class AssembleBowlScene: SKScene {
         }
 
         HapticManager.shared.success()
-        onComplete?(score, stars)
+
+        // Scene exit curtain
+        let exitCurtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        exitCurtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+        exitCurtain.strokeColor = .clear
+        exitCurtain.zPosition = 500
+        addChild(exitCurtain)
+        exitCurtain.run(.sequence([
+            .fadeAlpha(to: 1.0, duration: 0.4),
+            .run { [weak self] in self?.onComplete?(score, stars) }
+        ]))
     }
 }

@@ -1,11 +1,12 @@
 import SwiftUI
 
-/// A horizontal row of numbered dots that visualises the player's
+/// A horizontal row of cooking-step icons that visualises the player's
 /// progress through the 8 minigame steps.
 ///
-/// - Completed steps are filled with a warm amber colour.
+/// - Completed steps are filled with a warm amber colour and a checkmark badge.
 /// - The current step is highlighted with a larger, accented circle.
 /// - Future steps are outlined / dimmed.
+/// - Thin connecting lines run between each dot.
 struct ProgressBarView: View {
 
     // MARK: - Input
@@ -29,6 +30,17 @@ struct ProgressBarView: View {
     private let dotSize: CGFloat        = 32
     private let currentDotSize: CGFloat = 42
 
+    private let stepIcons: [String] = [
+        "flame",
+        "star.circle",
+        "bubbles.and.sparkles",
+        "gauge.with.dots.needle.bottom.50percent",
+        "scissors",
+        "slider.horizontal.3",
+        "square.stack.3d.down.right",
+        "leaf"
+    ]
+
     // MARK: - Init
 
     init(currentStep: Int, totalSteps: Int = 8) {
@@ -39,9 +51,18 @@ struct ProgressBarView: View {
     // MARK: - Body
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 0) {
             ForEach(0 ..< totalSteps, id: \.self) { index in
                 dot(for: index)
+
+                // Connecting line between dots
+                if index < totalSteps - 1 {
+                    Rectangle()
+                        .fill(index < currentStep ? completedColor : futureColor)
+                        .frame(height: 2)
+                        .frame(maxWidth: 16)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: currentStep)
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -74,17 +95,32 @@ struct ProgressBarView: View {
                     .frame(width: size, height: size)
             }
 
-            Text("\(index + 1)")
-                .font(.system(size: isCurrent ? 16 : 13,
-                              weight: .semibold,
-                              design: .rounded))
+            // Cooking step icon
+            Image(systemName: stepIcons[safe: index] ?? "circle")
+                .font(.system(size: isCurrent ? 16 : 13, weight: .semibold))
                 .foregroundStyle(
                     isCurrent || isCompleted
                         ? Color.white
                         : futureColor
                 )
+
+            // Checkmark badge on completed steps
+            if isCompleted {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.green)
+                    .offset(x: size / 2 - 2, y: size / 2 - 2)
+            }
         }
-        .animation(.easeInOut(duration: 0.3), value: currentStep)
+        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: currentStep)
+    }
+}
+
+// MARK: - Safe Array Subscript
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 

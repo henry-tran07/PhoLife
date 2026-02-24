@@ -92,6 +92,10 @@ class SimmerBrothScene: SKScene {
     // Wind indicator
     private var windArrow: SKNode!
 
+    // Pot glow & lid
+    private var potGlow: SKShapeNode!
+    private var lidNode: SKShapeNode!
+
     // HUD
     private var timerLabel: SKLabelNode!
     private var zonePercentLabel: SKLabelNode!
@@ -114,6 +118,15 @@ class SimmerBrothScene: SKScene {
 
         gameActive = true
         nextGustCountdown = TimeInterval.random(in: gustMinInterval...gustMaxInterval)
+
+        // Entrance curtain
+        let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        curtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1.0)
+        curtain.strokeColor = .clear
+        curtain.zPosition = 500
+        addChild(curtain)
+        curtain.run(.sequence([.wait(forDuration: 0.2), .fadeAlpha(to: 0, duration: 0.6), .removeFromParent()]))
     }
 
     // MARK: - Background
@@ -382,6 +395,30 @@ class SimmerBrothScene: SKScene {
             handle.zPosition = 11
             addChild(handle)
         }
+
+        // Golden glow behind pot (visible when in simmer zone)
+        potGlow = SKShapeNode(ellipseOf: CGSize(width: potWidth + 60, height: potHeight + 60))
+        potGlow.fillColor = SKColor(red: 0.85, green: 0.65, blue: 0.2, alpha: 0.0)
+        potGlow.strokeColor = .clear
+        potGlow.position = CGPoint(x: potCenterX, y: potCenterY)
+        potGlow.zPosition = potBody.zPosition - 0.5
+        addChild(potGlow)
+
+        // Pot lid on the rim
+        lidNode = SKShapeNode(ellipseOf: CGSize(width: potWidth * 0.85, height: 25))
+        lidNode.fillColor = SKColor(red: 0.30, green: 0.27, blue: 0.24, alpha: 1)
+        lidNode.strokeColor = SKColor(red: 0.35, green: 0.32, blue: 0.28, alpha: 1)
+        lidNode.lineWidth = 1
+        lidNode.position = CGPoint(x: potCenterX, y: potCenterY + potHeight / 2 + 5)
+        lidNode.zPosition = potBody.zPosition + 1
+        addChild(lidNode)
+
+        // Lid handle knob
+        let knob = SKShapeNode(circleOfRadius: 8)
+        knob.fillColor = SKColor(red: 0.25, green: 0.22, blue: 0.18, alpha: 1)
+        knob.strokeColor = .clear
+        knob.position = CGPoint(x: 0, y: 5)
+        lidNode.addChild(knob)
     }
 
     // MARK: - Broth Surface
@@ -853,9 +890,41 @@ class SimmerBrothScene: SKScene {
             timeInZone += dt
             if !wasInSimmerZone {
                 AudioManager.shared.playSFX("success-chime")
+
+                // Floating "Simmering!" text on zone entry
+                let simmerLabel = SKLabelNode(text: "Simmering!")
+                simmerLabel.fontName = "AvenirNext-Bold"
+                simmerLabel.fontSize = 22
+                simmerLabel.fontColor = SKColor(red: 0.3, green: 0.85, blue: 0.3, alpha: 1.0)
+                simmerLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 50)
+                simmerLabel.zPosition = 100
+                addChild(simmerLabel)
+                simmerLabel.run(.sequence([
+                    .group([.moveBy(x: 0, y: 40, duration: 1.0), .fadeOut(withDuration: 1.0)]),
+                    .removeFromParent()
+                ]))
             }
         }
         wasInSimmerZone = currentlyInZone
+
+        // --- Pot glow (golden when in simmer zone) ---
+        let targetGlowAlpha: CGFloat = currentlyInZone ? 0.15 : 0.0
+        potGlow.alpha += (targetGlowAlpha - potGlow.alpha) * 0.05
+
+        // --- Lid rattle when temperature > 0.7 ---
+        if temperature > 0.7 {
+            if lidNode.action(forKey: "rattle") == nil {
+                let rattle = SKAction.repeatForever(.sequence([
+                    .rotate(byAngle: 0.03, duration: 0.05),
+                    .rotate(byAngle: -0.06, duration: 0.1),
+                    .rotate(byAngle: 0.03, duration: 0.05)
+                ]))
+                lidNode.run(rattle, withKey: "rattle")
+            }
+        } else {
+            lidNode.removeAction(forKey: "rattle")
+            lidNode.zRotation = 0
+        }
 
         // --- Gust scheduling ---
         nextGustCountdown -= dt
@@ -966,11 +1035,21 @@ class SimmerBrothScene: SKScene {
 
         HapticManager.shared.success()
 
-        // Report after delay
+        // Report after delay with exit curtain
         run(SKAction.sequence([
             SKAction.wait(forDuration: postGameDelay),
             SKAction.run { [weak self] in
-                self?.onComplete?(score, stars)
+                guard let self = self else { return }
+                let exitCurtain = SKShapeNode(rectOf: CGSize(width: self.size.width + 20, height: self.size.height + 20))
+                exitCurtain.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
+                exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+                exitCurtain.strokeColor = .clear
+                exitCurtain.zPosition = 500
+                self.addChild(exitCurtain)
+                exitCurtain.run(.sequence([
+                    .fadeAlpha(to: 1.0, duration: 0.4),
+                    .run { [weak self] in self?.onComplete?(score, stars) }
+                ]))
             }
         ]))
     }

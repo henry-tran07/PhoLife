@@ -30,25 +30,46 @@ struct MinigameContainerView: View {
                 .ignoresSafeArea()
                 .id(gameState.currentMinigameIndex)
 
-            // Layer 2: Progress bar at top — non-interactive so touches pass through
+            // Layer 2: Progress bar + skip button at top
             VStack {
-                ProgressBarView(currentStep: gameState.currentMinigameIndex)
-                    .padding(.top, 16)
+                HStack {
+                    Spacer()
+                    ProgressBarView(currentStep: gameState.currentMinigameIndex)
+                    Spacer()
+                    // Debug: skip minigame
+                    if phase == .playing {
+                        Button {
+                            completionHandler()(50, 1)
+                        } label: {
+                            Text("Skip ▸")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.white.opacity(0.7))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.ultraThinMaterial, in: Capsule())
+                        }
+                        .padding(.trailing, 16)
+                    }
+                }
+                .padding(.top, 16)
                 Spacer()
             }
-            .allowsHitTesting(false)
+            .allowsHitTesting(phase == .playing)
 
             // Layer 3: Intro card
             if phase == .intro {
                 MinigameIntroCard(
                     minigameIndex: gameState.currentMinigameIndex,
                     onStart: {
-                        withAnimation(.easeInOut(duration: 0.4)) {
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
                             phase = .playing
                         }
                     }
                 )
-                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 0.9)),
+                    removal: .move(edge: .top).combined(with: .opacity).combined(with: .scale(scale: 0.8))
+                ))
             }
 
             // Layer 4: Score reveal card
@@ -64,12 +85,15 @@ struct MinigameContainerView: View {
                             score: lastScore
                         )
                         gameState.completeMinigame(result: result)
-                        withAnimation(.easeInOut(duration: 0.4)) {
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
                             phase = .intro
                         }
                     }
                 )
-                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                    removal: .opacity.combined(with: .scale(scale: 0.95))
+                ))
             }
         }
         .onChange(of: phase) { _, newPhase in
@@ -135,7 +159,7 @@ struct MinigameContainerView: View {
         return { (score: Int, stars: Int) in
             self.lastScore = score
             self.lastStars = stars
-            withAnimation(.easeInOut(duration: 0.4)) {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
                 self.phase = .scoreReveal
             }
         }

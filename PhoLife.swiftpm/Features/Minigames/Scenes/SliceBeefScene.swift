@@ -62,6 +62,14 @@ class SliceBeefScene: SKScene {
         setupBeefBlock()
         setupHUD()
         setupInstruction()
+
+        let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        curtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1.0)
+        curtain.strokeColor = .clear
+        curtain.zPosition = 500
+        addChild(curtain)
+        curtain.run(.sequence([.wait(forDuration: 0.2), .fadeAlpha(to: 0, duration: 0.6), .removeFromParent()]))
     }
 
     // MARK: - Setup
@@ -245,6 +253,22 @@ class SliceBeefScene: SKScene {
         cutPositionsLocal.append(yPosition)
         slicesMade += 1
 
+        // Glowing knife line along the cut
+        let knifePath = CGMutablePath()
+        knifePath.move(to: CGPoint(x: beefLeftX - 30, y: yPosition))
+        knifePath.addLine(to: CGPoint(x: beefRightX + 30, y: yPosition))
+        let knifeLine = SKShapeNode(path: knifePath)
+        knifeLine.strokeColor = SKColor(white: 0.95, alpha: 0.9)
+        knifeLine.lineWidth = 2
+        knifeLine.glowWidth = 4
+        knifeLine.zPosition = 50
+        addChild(knifeLine)
+        knifeLine.run(.sequence([
+            .wait(forDuration: 0.1),
+            .fadeOut(withDuration: 0.2),
+            .removeFromParent()
+        ]))
+
         // Score the slice based on spacing vs ideal
         let deviation = abs(spacing - idealSpacing) / idealSpacing
         let points: Int
@@ -252,6 +276,9 @@ class SliceBeefScene: SKScene {
         let qualityColor: SKColor
 
         AudioManager.shared.playSFX("slice")
+
+        // Red particles from the cut line
+        spawnSliceParticles(at: yPosition, beefCenterX: size.width / 2)
 
         if deviation <= perfectThreshold {
             points = 3
@@ -517,12 +544,45 @@ class SliceBeefScene: SKScene {
 
         HapticManager.shared.success()
 
-        // Report score after delay
+        // Report score after delay with exit curtain
         run(SKAction.sequence([
             SKAction.wait(forDuration: 1.5),
             SKAction.run { [weak self] in
-                self?.onComplete?(score, stars)
+                guard let self = self else { return }
+                let exitCurtain = SKShapeNode(rectOf: CGSize(width: self.size.width + 20, height: self.size.height + 20))
+                exitCurtain.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
+                exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+                exitCurtain.strokeColor = .clear
+                exitCurtain.zPosition = 500
+                self.addChild(exitCurtain)
+                exitCurtain.run(.sequence([
+                    .fadeAlpha(to: 1.0, duration: 0.4),
+                    .run { [weak self] in self?.onComplete?(score, stars) }
+                ]))
             }
         ]))
+    }
+
+    // MARK: - Slice Particles
+
+    private func spawnSliceParticles(at y: CGFloat, beefCenterX: CGFloat) {
+        for _ in 0..<7 {
+            let p = SKShapeNode(circleOfRadius: CGFloat.random(in: 1.5...3.5))
+            p.fillColor = SKColor(red: CGFloat.random(in: 0.7...0.9), green: 0.1, blue: 0.1, alpha: 0.7)
+            p.strokeColor = .clear
+            p.position = CGPoint(x: beefCenterX + CGFloat.random(in: -60...60), y: y)
+            p.zPosition = 40
+            addChild(p)
+            let dx = CGFloat.random(in: -40...40)
+            let dy = CGFloat.random(in: 20...50)
+            p.run(.sequence([
+                .group([
+                    .moveBy(x: dx, y: dy, duration: 0.4),
+                    .fadeOut(withDuration: 0.4),
+                    .scale(to: 0.3, duration: 0.4)
+                ]),
+                .removeFromParent()
+            ]))
+        }
     }
 }

@@ -71,8 +71,18 @@ class CharAromaticsScene: SKScene {
         buildMeter()
         buildLabels()
         buildSmoke()
+        buildHeatShimmer()
 
         configureRound()
+
+        // Scene entrance curtain
+        let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        curtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1.0)
+        curtain.strokeColor = .clear
+        curtain.zPosition = 500
+        addChild(curtain)
+        curtain.run(.sequence([.wait(forDuration: 0.2), .fadeAlpha(to: 0, duration: 0.6), .removeFromParent()]))
     }
 
     // MARK: - Build Nodes
@@ -319,6 +329,25 @@ class CharAromaticsScene: SKScene {
         return SKTexture(image: image)
     }
 
+    // MARK: - Heat Shimmer
+
+    private func buildHeatShimmer() {
+        let skilletPos = skilletNode.position
+        for i in 0..<3 {
+            let shimmer = SKShapeNode(rectOf: CGSize(width: 80 + CGFloat(i) * 30, height: 2))
+            shimmer.fillColor = SKColor(white: 1.0, alpha: 0.03)
+            shimmer.strokeColor = .clear
+            shimmer.position = CGPoint(x: skilletPos.x, y: skilletPos.y + 80 + CGFloat(i) * 25)
+            shimmer.zPosition = 1.5
+            addChild(shimmer)
+            let wobble = SKAction.repeatForever(.sequence([
+                .moveBy(x: CGFloat.random(in: -15...15), y: 5, duration: 1.5 + Double(i) * 0.3),
+                .moveBy(x: CGFloat.random(in: -15...15), y: -5, duration: 1.5 + Double(i) * 0.3)
+            ]))
+            shimmer.run(wobble)
+        }
+    }
+
     // MARK: - Round Management
 
     private func configureRound() {
@@ -355,6 +384,7 @@ class CharAromaticsScene: SKScene {
         roundState = .holding
         indicatorLine.alpha = 1
         instructionLabel.run(.fadeAlpha(to: 0.0, duration: 0.2))
+        HapticManager.shared.light()
         AudioManager.shared.playSFX("sizzle")
     }
 
@@ -492,19 +522,33 @@ class CharAromaticsScene: SKScene {
             points = 3
             text = "Perfect Char!"
             color = SKColor(red: 0.2, green: 0.9, blue: 0.35, alpha: 1)
+            HapticManager.shared.success()
             AudioManager.shared.playSFX("success-chime")
+
+            // Grill marks on perfect char
+            for i in 0..<3 {
+                let mark = SKShapeNode(rectOf: CGSize(width: 40, height: 3))
+                mark.fillColor = SKColor(red: 0.1, green: 0.05, blue: 0.0, alpha: 0.7)
+                mark.strokeColor = .clear
+                mark.position = CGPoint(x: CGFloat(i - 1) * 18, y: CGFloat(i - 1) * 8 - 5)
+                mark.zRotation = -0.1
+                ingredientNode.addChild(mark)
+            }
         } else if yellowLow.contains(value) || yellowHigh.contains(value) {
             points = 2
             text = "Good"
             color = SKColor(red: 0.95, green: 0.85, blue: 0.25, alpha: 1)
+            HapticManager.shared.medium()
         } else if value < yellowLow.lowerBound {
             points = 1
             text = "Too Raw!"
             color = SKColor(red: 0.5, green: 0.6, blue: 0.75, alpha: 1)
+            HapticManager.shared.light()
         } else {
             points = 1
             text = "Burned!"
             color = SKColor(red: 0.95, green: 0.3, blue: 0.25, alpha: 1)
+            HapticManager.shared.error()
             AudioManager.shared.playSFX("error-buzz")
         }
 
@@ -584,6 +628,7 @@ class CharAromaticsScene: SKScene {
     private func finishGame() {
         feedbackLabel.run(.fadeAlpha(to: 0, duration: 0.3))
         smokeEmitter.particleBirthRate = 0
+        HapticManager.shared.success()
 
         let score = Int((CGFloat(totalPoints) / 12.0) * 100.0)
         let stars: Int
@@ -595,12 +640,17 @@ class CharAromaticsScene: SKScene {
             stars = 1
         }
 
-        // Brief delay before calling completion
-        run(.sequence([
+        // Scene exit curtain
+        let exitCurtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        exitCurtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+        exitCurtain.strokeColor = .clear
+        exitCurtain.zPosition = 500
+        addChild(exitCurtain)
+        exitCurtain.run(.sequence([
             .wait(forDuration: 0.6),
-            .run { [weak self] in
-                self?.onComplete?(score, stars)
-            }
+            .fadeAlpha(to: 1.0, duration: 0.4),
+            .run { [weak self] in self?.onComplete?(score, stars) }
         ]))
     }
 }

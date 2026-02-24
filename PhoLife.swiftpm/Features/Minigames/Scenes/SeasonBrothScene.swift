@@ -49,6 +49,7 @@ class SeasonBrothScene: SKScene {
     private var brothBowlOuter: SKShapeNode!
     private var brothBowlFill: SKShapeNode!
     private var brothGlow: SKShapeNode!
+    private var brothHighlight: SKShapeNode!
     private var harmonyArc: SKShapeNode!
     private var harmonyLabel: SKLabelNode!
     private var attemptLabel: SKLabelNode!
@@ -70,6 +71,15 @@ class SeasonBrothScene: SKScene {
         setupHUD()
         updateBrothVisuals()
         updateHarmonyMeter()
+        buildSteamWisps()
+
+        let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
+        curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        curtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1.0)
+        curtain.strokeColor = .clear
+        curtain.zPosition = 500
+        addChild(curtain)
+        curtain.run(.sequence([.wait(forDuration: 0.2), .fadeAlpha(to: 0, duration: 0.6), .removeFromParent()]))
     }
 
     // MARK: - Background
@@ -134,12 +144,20 @@ class SeasonBrothScene: SKScene {
         addChild(brothBowlFill)
 
         // Specular highlight on the broth surface
-        let highlight = SKShapeNode(ellipseOf: CGSize(width: bowlRadius * 0.8, height: bowlRadius * 0.4))
-        highlight.position = CGPoint(x: bowlCenterX - 20, y: bowlCenterY + 30)
-        highlight.fillColor = SKColor(white: 1.0, alpha: 0.12)
-        highlight.strokeColor = .clear
-        highlight.zPosition = 3
-        addChild(highlight)
+        brothHighlight = SKShapeNode(ellipseOf: CGSize(width: bowlRadius * 0.8, height: bowlRadius * 0.4))
+        brothHighlight.position = CGPoint(x: bowlCenterX - 20, y: bowlCenterY + 30)
+        brothHighlight.fillColor = SKColor(white: 1.0, alpha: 0.12)
+        brothHighlight.strokeColor = .clear
+        brothHighlight.zPosition = 3
+        addChild(brothHighlight)
+
+        // Gentle horizontal sway on the specular highlight
+        let sway = SKAction.repeatForever(.sequence([
+            .moveBy(x: 8, y: 0, duration: 1.5),
+            .moveBy(x: -8, y: 0, duration: 1.5)
+        ]))
+        sway.timingMode = .easeInEaseOut
+        brothHighlight.run(sway)
     }
 
     // MARK: - Harmony Meter
@@ -309,7 +327,7 @@ class SeasonBrothScene: SKScene {
 
     private func setupTasteButton() {
         let buttonCenterX = size.width / 2
-        let buttonCenterY: CGFloat = 130
+        let buttonCenterY: CGFloat = 70
 
         let buttonWidth: CGFloat = 180
         let buttonHeight: CGFloat = 50
@@ -791,13 +809,57 @@ class SeasonBrothScene: SKScene {
 
         HapticManager.shared.success()
 
-        // Report score after animations
+        // Report score after animations with exit curtain
         run(SKAction.sequence([
             SKAction.wait(forDuration: 1.5),
             SKAction.run { [weak self] in
                 guard let self = self else { return }
-                self.onComplete?(self.bestScore, self.bestStars)
+                let exitCurtain = SKShapeNode(rectOf: CGSize(width: self.size.width + 20, height: self.size.height + 20))
+                exitCurtain.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
+                exitCurtain.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 0.0)
+                exitCurtain.strokeColor = .clear
+                exitCurtain.zPosition = 500
+                self.addChild(exitCurtain)
+                exitCurtain.run(.sequence([
+                    .fadeAlpha(to: 1.0, duration: 0.4),
+                    .run { [weak self] in
+                        guard let self = self else { return }
+                        self.onComplete?(self.bestScore, self.bestStars)
+                    }
+                ]))
             }
         ]))
+    }
+
+    // MARK: - Steam Wisps
+
+    private func buildSteamWisps() {
+        let bowlPos = CGPoint(x: size.width / 2, y: size.height * 0.62)
+        for i in 0..<4 {
+            let wisp = SKShapeNode(circleOfRadius: CGFloat.random(in: 8...14))
+            wisp.fillColor = SKColor(white: 1.0, alpha: 0.06)
+            wisp.strokeColor = .clear
+            wisp.position = CGPoint(
+                x: bowlPos.x + CGFloat.random(in: -40...40),
+                y: bowlPos.y + 60 + CGFloat(i) * 20
+            )
+            wisp.zPosition = 5
+            addChild(wisp)
+
+            let drift = SKAction.repeatForever(.sequence([
+                .group([
+                    .moveBy(x: CGFloat.random(in: -20...20), y: 40, duration: 2.0 + Double(i) * 0.3),
+                    .fadeAlpha(to: 0.0, duration: 2.0 + Double(i) * 0.3)
+                ]),
+                .run {
+                    wisp.position = CGPoint(
+                        x: bowlPos.x + CGFloat.random(in: -40...40),
+                        y: bowlPos.y + 60
+                    )
+                    wisp.alpha = CGFloat.random(in: 0.04...0.08)
+                }
+            ]))
+            wisp.run(drift)
+        }
     }
 }
