@@ -8,13 +8,66 @@ import SwiftUI
 /// keeping the visual language consistent across SDK targets.
 struct GlassContainerModifier: ViewModifier {
 
+    private let warmAmber = Color(red: 0xD4 / 255.0,
+                                  green: 0xA5 / 255.0,
+                                  blue: 0x74 / 255.0)
+
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
             content
                 .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(warmAmber.opacity(0.15), lineWidth: 0.5)
+                )
         } else {
             content
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .background {
+                    ZStack {
+                        // Outer warm ambient shadow layer
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.black.opacity(0.25))
+                            .blur(radius: 12)
+                            .offset(y: 4)
+
+                        // Primary frosted glass
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial)
+
+                        // Subtle warm tint overlay
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(warmAmber.opacity(0.04))
+
+                        // Inner glow — top highlight simulating light source
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.08),
+                                        Color.clear,
+                                        Color.clear
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+
+                        // Warm-tinted border with subtle gradient
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        warmAmber.opacity(0.25),
+                                        warmAmber.opacity(0.08),
+                                        warmAmber.opacity(0.12)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.75
+                            )
+                    }
+                }
         }
     }
 }

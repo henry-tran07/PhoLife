@@ -76,7 +76,7 @@ class AssembleBowlScene: SKScene {
     // MARK: - Lifecycle
 
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor(red: 0.28, green: 0.20, blue: 0.13, alpha: 1.0)
+        backgroundColor = SKColor(red: 0.10, green: 0.07, blue: 0.03, alpha: 1.0)
 
         gameLayer = SKNode()
         gameLayer.position = CGPoint(x: 0, y: 0)
@@ -104,22 +104,37 @@ class AssembleBowlScene: SKScene {
     // MARK: - Background
 
     private func setupBackground() {
+        // Warm gradient base
+        let bottomGlow = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height * 0.5))
+        bottomGlow.position = CGPoint(x: size.width / 2, y: size.height * 0.25)
+        bottomGlow.fillColor = SKColor(red: 0.16, green: 0.10, blue: 0.05, alpha: 0.5)
+        bottomGlow.strokeColor = .clear
+        bottomGlow.zPosition = -10
+        gameLayer.addChild(bottomGlow)
+
         // Warm kitchen counter surface
         let counter = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height * 0.42))
         counter.position = CGPoint(x: size.width / 2, y: size.height * 0.18)
-        counter.fillColor = SKColor(red: 0.35, green: 0.24, blue: 0.14, alpha: 1.0)
-        counter.strokeColor = SKColor(red: 0.42, green: 0.30, blue: 0.18, alpha: 1.0)
-        counter.lineWidth = 2
+        counter.fillColor = SKColor(red: 0.22, green: 0.15, blue: 0.08, alpha: 1.0)
+        counter.strokeColor = SKColor(red: 0.30, green: 0.22, blue: 0.12, alpha: 0.6)
+        counter.lineWidth = 1.5
         counter.zPosition = -10
         gameLayer.addChild(counter)
 
         // Subtle wood grain lines on counter
-        for i in 0..<8 {
-            let lineY = size.height * 0.05 + CGFloat(i) * (size.height * 0.04)
-            let grainLine = SKShapeNode(rectOf: CGSize(width: size.width * 0.9, height: 1))
-            grainLine.position = CGPoint(x: size.width / 2 + CGFloat.random(in: -20...20), y: lineY)
-            grainLine.fillColor = SKColor(red: 0.30, green: 0.20, blue: 0.10, alpha: 0.15)
-            grainLine.strokeColor = .clear
+        for i in 0..<10 {
+            let lineY = size.height * 0.04 + CGFloat(i) * (size.height * 0.035)
+            let grainPath = CGMutablePath()
+            grainPath.move(to: CGPoint(x: size.width * 0.05, y: lineY))
+            grainPath.addCurve(
+                to: CGPoint(x: size.width * 0.95, y: lineY + CGFloat.random(in: -3...3)),
+                control1: CGPoint(x: size.width * 0.3, y: lineY + CGFloat.random(in: -4...4)),
+                control2: CGPoint(x: size.width * 0.7, y: lineY + CGFloat.random(in: -4...4))
+            )
+            let grainLine = SKShapeNode(path: grainPath)
+            grainLine.strokeColor = SKColor(red: 0.18, green: 0.12, blue: 0.06, alpha: 0.18)
+            grainLine.lineWidth = 1
+            grainLine.fillColor = .clear
             grainLine.zPosition = -9
             gameLayer.addChild(grainLine)
         }
@@ -127,10 +142,18 @@ class AssembleBowlScene: SKScene {
         // Warm ambient glow at top
         let topGlow = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.12))
         topGlow.position = CGPoint(x: size.width / 2, y: size.height - size.height * 0.06)
-        topGlow.fillColor = SKColor(red: 0.40, green: 0.28, blue: 0.12, alpha: 0.12)
+        topGlow.fillColor = SKColor(red: 0.35, green: 0.22, blue: 0.10, alpha: 0.10)
         topGlow.strokeColor = .clear
         topGlow.zPosition = -10
         gameLayer.addChild(topGlow)
+
+        // Radial spotlight centered on bowl area
+        let spotlight = SKShapeNode(circleOfRadius: size.width * 0.28)
+        spotlight.position = bowlCenter
+        spotlight.fillColor = SKColor(red: 0.28, green: 0.18, blue: 0.08, alpha: 0.14)
+        spotlight.strokeColor = .clear
+        spotlight.zPosition = -8
+        gameLayer.addChild(spotlight)
     }
 
     // MARK: - Bowl Setup
@@ -140,12 +163,12 @@ class AssembleBowlScene: SKScene {
 
         // Shadow under the bowl
         let shadowPath = CGPath(
-            ellipseIn: CGRect(x: -bowlWidth * 0.55, y: -bowlHeight * 0.35,
-                              width: bowlWidth * 1.1, height: bowlHeight * 0.35),
+            ellipseIn: CGRect(x: -bowlWidth * 0.55, y: -bowlHeight * 0.38,
+                              width: bowlWidth * 1.1, height: bowlHeight * 0.38),
             transform: nil
         )
         let shadow = SKShapeNode(path: shadowPath)
-        shadow.fillColor = SKColor(red: 0.10, green: 0.06, blue: 0.02, alpha: 0.35)
+        shadow.fillColor = SKColor(red: 0.04, green: 0.02, blue: 0.01, alpha: 0.40)
         shadow.strokeColor = .clear
         shadow.position = CGPoint(x: center.x, y: center.y - bowlHeight * 0.32)
         shadow.zPosition = 0
@@ -261,11 +284,20 @@ class AssembleBowlScene: SKScene {
         container.userData?["ingredientIndex"] = index
         container.userData?["ingredientName"] = ingredient.name
 
+        // Card shadow
+        let shadow = SKShapeNode(rectOf: CGSize(width: cardWidth, height: cardHeight),
+                                  cornerRadius: cardCornerRadius)
+        shadow.fillColor = SKColor(red: 0.04, green: 0.02, blue: 0.01, alpha: 0.30)
+        shadow.strokeColor = .clear
+        shadow.position = CGPoint(x: 3, y: -3)
+        shadow.zPosition = -0.5
+        container.addChild(shadow)
+
         // Card background
         let bg = SKShapeNode(rectOf: CGSize(width: cardWidth, height: cardHeight),
                              cornerRadius: cardCornerRadius)
-        bg.fillColor = SKColor(red: 0.22, green: 0.15, blue: 0.08, alpha: 0.92)
-        bg.strokeColor = SKColor(red: 0.45, green: 0.35, blue: 0.22, alpha: 0.8)
+        bg.fillColor = SKColor(red: 0.15, green: 0.10, blue: 0.05, alpha: 0.94)
+        bg.strokeColor = SKColor(red: 0.42, green: 0.32, blue: 0.18, alpha: 0.8)
         bg.lineWidth = 2
         bg.name = "cardBG_\(index)"
         container.addChild(bg)
@@ -274,9 +306,17 @@ class AssembleBowlScene: SKScene {
         let innerBorder = SKShapeNode(rectOf: CGSize(width: cardWidth - 10, height: cardHeight - 10),
                                       cornerRadius: cardCornerRadius - 2)
         innerBorder.fillColor = .clear
-        innerBorder.strokeColor = SKColor(red: 0.50, green: 0.40, blue: 0.25, alpha: 0.25)
+        innerBorder.strokeColor = SKColor(red: 0.48, green: 0.38, blue: 0.22, alpha: 0.20)
         innerBorder.lineWidth = 1
         bg.addChild(innerBorder)
+
+        // Top highlight for depth
+        let topHighlight = SKShapeNode(rectOf: CGSize(width: cardWidth - 14, height: 3),
+                                        cornerRadius: 1.5)
+        topHighlight.fillColor = SKColor(white: 1.0, alpha: 0.06)
+        topHighlight.strokeColor = .clear
+        topHighlight.position = CGPoint(x: 0, y: cardHeight / 2 - 8)
+        bg.addChild(topHighlight)
 
         // Color swatch / icon on the left side
         let icon = ingredient.iconBuilder(cardWidth)
@@ -360,7 +400,7 @@ class AssembleBowlScene: SKScene {
 
     private func setupHUD() {
         // Title
-        let title = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        let title = SKLabelNode(fontNamed: "SFProRounded-Heavy")
         title.text = "Build Your Bowl"
         title.fontSize = 34
         title.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
@@ -385,7 +425,7 @@ class AssembleBowlScene: SKScene {
         feedbackLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
         feedbackLabel.text = ""
         feedbackLabel.fontSize = 24
-        feedbackLabel.fontColor = SKColor(red: 1.0, green: 0.6, blue: 0.5, alpha: 1.0)
+        feedbackLabel.fontColor = SKColor(red: 1.0, green: 0.55, blue: 0.40, alpha: 1.0)
         feedbackLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.52)
         feedbackLabel.horizontalAlignmentMode = .center
         feedbackLabel.verticalAlignmentMode = .center
@@ -793,25 +833,43 @@ class AssembleBowlScene: SKScene {
     }
 
     private func showFloatingPoints(_ text: String, at position: CGPoint, color: SKColor) {
-        let label = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        let label = SKLabelNode(fontNamed: "SFProRounded-Heavy")
         label.text = text
-        label.fontSize = 28
+        label.fontSize = 30
         label.fontColor = color
         label.position = CGPoint(x: position.x, y: position.y + 40)
         label.horizontalAlignmentMode = .center
         label.verticalAlignmentMode = .center
         label.zPosition = 120
         label.alpha = 0
+        label.setScale(0.6)
         gameLayer.addChild(label)
 
         label.run(SKAction.sequence([
             SKAction.group([
-                SKAction.fadeAlpha(to: 1.0, duration: 0.12),
-                SKAction.moveBy(x: 0, y: 60, duration: 0.8),
+                SKAction.fadeAlpha(to: 1.0, duration: 0.10),
+                SKAction.scale(to: 1.1, duration: 0.12),
+                SKAction.moveBy(x: 0, y: 65, duration: 0.85),
                 SKAction.sequence([
                     SKAction.wait(forDuration: 0.4),
-                    SKAction.fadeAlpha(to: 0, duration: 0.4)
+                    SKAction.fadeAlpha(to: 0, duration: 0.45)
                 ])
+            ]),
+            SKAction.removeFromParent()
+        ]))
+
+        // Small golden sparkle at the float origin
+        let sparkle = SKShapeNode(circleOfRadius: 3)
+        sparkle.fillColor = SKColor(red: 1.0, green: 0.88, blue: 0.40, alpha: 0.7)
+        sparkle.strokeColor = .clear
+        sparkle.glowWidth = 3
+        sparkle.position = CGPoint(x: position.x, y: position.y + 40)
+        sparkle.zPosition = 119
+        gameLayer.addChild(sparkle)
+        sparkle.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.scale(to: 5, duration: 0.3),
+                SKAction.fadeOut(withDuration: 0.3)
             ]),
             SKAction.removeFromParent()
         ]))

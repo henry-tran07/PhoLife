@@ -12,57 +12,151 @@ struct MinigameScoreCard: View {
     // MARK: - State
 
     @State private var displayedScore: Int = 0
+    @State private var cardVisible = false
     @State private var starsVisible = false
     @State private var scoreVisible = false
     @State private var headerVisible = false
     @State private var factVisible = false
     @State private var buttonVisible = false
+    @State private var buttonPulse = false
+    @State private var starGlow = false
+    @State private var sparklePhase: CGFloat = 0
 
     // MARK: - Constants
 
     private let warmAmber = Color(red: 212 / 255, green: 165 / 255, blue: 116 / 255)  // #D4A574
     private let cream = Color(red: 1.0, green: 248 / 255, blue: 220 / 255)             // #FFF8DC
+    private let deepAmber = Color(red: 180 / 255, green: 120 / 255, blue: 60 / 255)
+    private let gold = Color(red: 1.0, green: 0.84, blue: 0.0)
 
     // MARK: - Body
 
     var body: some View {
         ZStack {
-            // Dimmed background
-            Color.black.opacity(0.6)
+            // Dimmed background with warm tint
+            Color.black.opacity(cardVisible ? 0.65 : 0)
                 .ignoresSafeArea()
+                .animation(.easeOut(duration: 0.5), value: cardVisible)
+
+            // Warm celebratory glow behind card
+            RadialGradient(
+                colors: [
+                    gold.opacity(cardVisible ? 0.1 : 0),
+                    warmAmber.opacity(cardVisible ? 0.06 : 0),
+                    Color.clear
+                ],
+                center: .center,
+                startRadius: 60,
+                endRadius: 420
+            )
+            .ignoresSafeArea()
+            .animation(.easeOut(duration: 0.9), value: cardVisible)
+
+            // Gold sparkle particles behind card
+            Canvas { context, size in
+                let particleCount = 16
+                for i in 0..<particleCount {
+                    let angle = (CGFloat(i) / CGFloat(particleCount)) * .pi * 2 + sparklePhase * .pi * 2
+                    let radius: CGFloat = 140 + 60 * sin(CGFloat(i) * 1.3 + sparklePhase * .pi)
+                    let x = size.width / 2 + cos(angle) * radius
+                    let y = size.height / 2 + sin(angle) * radius * 0.6
+                    let alpha = 0.15 + 0.2 * sin(sparklePhase * .pi * 4 + CGFloat(i))
+                    let dotSize: CGFloat = 1.5 + sin(CGFloat(i) * 2.0 + sparklePhase * .pi * 3) * 1.0
+
+                    context.opacity = max(0, alpha)
+                    context.fill(
+                        Path(ellipseIn: CGRect(x: x - dotSize, y: y - dotSize, width: dotSize * 2, height: dotSize * 2)),
+                        with: .color(gold)
+                    )
+                }
+            }
+            .ignoresSafeArea()
+            .opacity(starsVisible ? 1 : 0)
+            .animation(.easeIn(duration: 0.6), value: starsVisible)
+            .allowsHitTesting(false)
 
             // Centered card
-            VStack(spacing: 20) {
-                // Star rating
-                StarRatingView(stars: stars, animated: true, starSize: 52)
-                    .opacity(starsVisible ? 1 : 0)
-                    .scaleEffect(starsVisible ? 1 : 0.8)
+            VStack(spacing: 22) {
+                // Star rating with warm glow behind
+                ZStack {
+                    // Gold glow behind stars
+                    Ellipse()
+                        .fill(
+                            RadialGradient(
+                                colors: [gold.opacity(starGlow ? 0.2 : 0.05), Color.clear],
+                                center: .center,
+                                startRadius: 10,
+                                endRadius: 80
+                            )
+                        )
+                        .frame(width: 200, height: 80)
+                        .blur(radius: 10)
 
-                // Celebration header
+                    StarRatingView(stars: stars, animated: true, starSize: 52)
+                }
+                .opacity(starsVisible ? 1 : 0)
+                .scaleEffect(starsVisible ? 1 : 0.6)
+
+                // Celebration header with gradient
                 Text(celebrationHeader)
                     .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundStyle(headerColor)
+                    .foregroundStyle(headerGradient)
+                    .shadow(color: headerShadowColor, radius: 8, y: 2)
                     .opacity(headerVisible ? 1 : 0)
+                    .scaleEffect(headerVisible ? 1 : 0.9)
                     .offset(y: headerVisible ? 0 : 10)
 
-                // Score with count-up
-                Text("\(displayedScore)")
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundStyle(warmAmber)
-                    .contentTransition(.numericText(value: Double(displayedScore)))
-                    .opacity(scoreVisible ? 1 : 0)
+                // Score with count-up and label
+                VStack(spacing: 4) {
+                    Text("\(displayedScore)")
+                        .font(.system(size: 52, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [warmAmber, cream],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .contentTransition(.numericText(value: Double(displayedScore)))
+                        .shadow(color: warmAmber.opacity(0.3), radius: 6, y: 2)
 
-                // Cultural fact
-                Text(culturalFact)
-                    .font(.system(size: 16, weight: .regular).italic())
-                    .foregroundStyle(cream.opacity(0.85))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .padding(.horizontal, 8)
-                    .opacity(factVisible ? 1 : 0)
-                    .offset(y: factVisible ? 0 : 15)
+                    Text("POINTS")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .tracking(2.0)
+                        .foregroundStyle(warmAmber.opacity(0.5))
+                }
+                .opacity(scoreVisible ? 1 : 0)
+                .scaleEffect(scoreVisible ? 1 : 0.85)
 
-                // Continue button
+                // Cultural fact in distinct container
+                VStack(spacing: 8) {
+                    // Small decorative icon
+                    Image(systemName: "quote.opening")
+                        .font(.system(size: 14))
+                        .foregroundStyle(warmAmber.opacity(0.4))
+
+                    Text(culturalFact)
+                        .font(.system(size: 15, weight: .regular).italic())
+                        .foregroundStyle(cream.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(warmAmber.opacity(0.06))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(warmAmber.opacity(0.12), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 4)
+                .opacity(factVisible ? 1 : 0)
+                .offset(y: factVisible ? 0 : 15)
+
+                // Continue button - matching IntroCard premium style
                 Button {
                     HapticManager.shared.heavy()
                     AudioManager.shared.playSFX("button-tap")
@@ -70,48 +164,105 @@ struct MinigameScoreCard: View {
                 } label: {
                     Text("Continue")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .tracking(0.5)
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 48)
-                        .padding(.vertical, 14)
-                        .background(warmAmber, in: Capsule())
+                        .padding(.horizontal, 52)
+                        .padding(.vertical, 15)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [warmAmber, deepAmber],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                                .shadow(color: warmAmber.opacity(buttonPulse ? 0.5 : 0.25), radius: buttonPulse ? 14 : 8, y: 3)
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [cream.opacity(0.3), warmAmber.opacity(0.1)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
                 }
-                .buttonStyle(ScaleButtonStyle())
+                .buttonStyle(WarmScaleButtonStyle())
                 .accessibilityLabel("Continue to next minigame")
-                .padding(.top, 8)
+                .padding(.top, 6)
                 .opacity(buttonVisible ? 1 : 0)
-                .scaleEffect(buttonVisible ? 1 : 0.9)
+                .scaleEffect(buttonVisible ? (buttonPulse ? 1.04 : 1.0) : 0.85)
             }
-            .padding(32)
+            .padding(.horizontal, 36)
+            .padding(.vertical, 32)
             .frame(width: 500)
             .glassContainer()
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(warmAmber.opacity(0.2), lineWidth: 1)
+                    .stroke(
+                        LinearGradient(
+                            colors: [warmAmber.opacity(0.3), warmAmber.opacity(0.08)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
             )
+            // Card entrance animation
+            .scaleEffect(cardVisible ? 1 : 0.88)
+            .blur(radius: cardVisible ? 0 : 6)
+            .opacity(cardVisible ? 1 : 0)
         }
         .onAppear {
             displayedScore = 0
+            cardVisible = false
             starsVisible = false
             scoreVisible = false
             headerVisible = false
             factVisible = false
             buttonVisible = false
+            buttonPulse = false
+            starGlow = false
 
-            // Staggered reveal sequence
-            withAnimation(.easeOut(duration: 0.4).delay(0.3)) {
+            // Card entrance
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.78).delay(0.05)) {
+                cardVisible = true
+            }
+
+            // Staggered reveal sequence - cinematic pacing
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.35)) {
                 starsVisible = true
             }
-            withAnimation(.easeOut(duration: 0.3).delay(0.8)) {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.7).delay(0.9)) {
                 scoreVisible = true
             }
-            withAnimation(.easeOut(duration: 0.3).delay(1.5)) {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.7).delay(1.6)) {
                 headerVisible = true
             }
-            withAnimation(.easeOut(duration: 0.4).delay(2.0)) {
+            withAnimation(.easeOut(duration: 0.5).delay(2.1)) {
                 factVisible = true
             }
-            withAnimation(.easeOut(duration: 0.4).delay(2.3)) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(2.5)) {
                 buttonVisible = true
+            }
+
+            // Star glow breathing
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true).delay(0.8)) {
+                starGlow = true
+            }
+
+            // Button pulse after it appears
+            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(2.9)) {
+                buttonPulse = true
+            }
+
+            // Sparkle particle orbit
+            withAnimation(.linear(duration: 10.0).repeatForever(autoreverses: false)) {
+                sparklePhase = 1.0
             }
         }
         .task {
@@ -152,6 +303,37 @@ struct MinigameScoreCard: View {
         case 3: "Perfect!"
         case 2: "Well Done!"
         default: "Nice Try!"
+        }
+    }
+
+    private var headerGradient: some ShapeStyle {
+        switch stars {
+        case 3:
+            return LinearGradient(
+                colors: [gold, warmAmber],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case 2:
+            return LinearGradient(
+                colors: [cream, warmAmber.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        default:
+            return LinearGradient(
+                colors: [.white, cream.opacity(0.7)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    private var headerShadowColor: Color {
+        switch stars {
+        case 3: gold.opacity(0.3)
+        case 2: warmAmber.opacity(0.2)
+        default: Color.clear
         }
     }
 

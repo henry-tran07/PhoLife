@@ -43,7 +43,6 @@ class SeasonBrothScene: SKScene {
     private var bestScore: Int = 0
     private var bestStars: Int = 1
     private var gameEnded: Bool = false
-
     // MARK: - Nodes
 
     private var brothBowlOuter: SKShapeNode!
@@ -61,7 +60,7 @@ class SeasonBrothScene: SKScene {
     // MARK: - Lifecycle
 
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor(red: 0.22, green: 0.15, blue: 0.08, alpha: 1.0)
+        backgroundColor = SKColor(red: 0.10, green: 0.06, blue: 0.03, alpha: 1.0)
 
         setupBackground()
         setupBrothBowl()
@@ -86,9 +85,9 @@ class SeasonBrothScene: SKScene {
 
     private func setupBackground() {
         // Warm kitchen gradient layers
-        let bottomGlow = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.4))
-        bottomGlow.position = CGPoint(x: size.width / 2, y: size.height * 0.2)
-        bottomGlow.fillColor = SKColor(red: 0.28, green: 0.18, blue: 0.08, alpha: 0.4)
+        let bottomGlow = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height * 0.5))
+        bottomGlow.position = CGPoint(x: size.width / 2, y: size.height * 0.25)
+        bottomGlow.fillColor = SKColor(red: 0.18, green: 0.12, blue: 0.05, alpha: 0.6)
         bottomGlow.strokeColor = .clear
         bottomGlow.zPosition = -10
         addChild(bottomGlow)
@@ -96,17 +95,25 @@ class SeasonBrothScene: SKScene {
         // Subtle warm glow at top
         let topGlow = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.15))
         topGlow.position = CGPoint(x: size.width / 2, y: size.height - size.height * 0.075)
-        topGlow.fillColor = SKColor(red: 0.35, green: 0.22, blue: 0.10, alpha: 0.15)
+        topGlow.fillColor = SKColor(red: 0.35, green: 0.22, blue: 0.10, alpha: 0.12)
         topGlow.strokeColor = .clear
         topGlow.zPosition = -10
         addChild(topGlow)
 
+        // Radial warm spotlight on the bowl area
+        let spotlightGlow = SKShapeNode(circleOfRadius: 180)
+        spotlightGlow.position = CGPoint(x: size.width / 2, y: size.height * 0.62)
+        spotlightGlow.fillColor = SKColor(red: 0.30, green: 0.20, blue: 0.08, alpha: 0.18)
+        spotlightGlow.strokeColor = .clear
+        spotlightGlow.zPosition = -9
+        addChild(spotlightGlow)
+
         // Counter surface at bottom
-        let counter = SKShapeNode(rectOf: CGSize(width: size.width, height: 80))
+        let counter = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: 80))
         counter.position = CGPoint(x: size.width / 2, y: 40)
         counter.fillColor = SKColor(red: 0.18, green: 0.12, blue: 0.06, alpha: 1.0)
-        counter.strokeColor = SKColor(red: 0.30, green: 0.20, blue: 0.10, alpha: 1.0)
-        counter.lineWidth = 2
+        counter.strokeColor = SKColor(red: 0.28, green: 0.18, blue: 0.08, alpha: 0.6)
+        counter.lineWidth = 1.5
         counter.zPosition = -5
         addChild(counter)
     }
@@ -118,22 +125,30 @@ class SeasonBrothScene: SKScene {
         let bowlCenterY = size.height * 0.62
         let bowlRadius: CGFloat = 100
 
-        // Outer bowl rim
-        brothBowlOuter = SKShapeNode(circleOfRadius: bowlRadius + 8)
-        brothBowlOuter.position = CGPoint(x: bowlCenterX, y: bowlCenterY)
-        brothBowlOuter.fillColor = SKColor(red: 0.30, green: 0.22, blue: 0.14, alpha: 1.0)
-        brothBowlOuter.strokeColor = SKColor(red: 0.40, green: 0.30, blue: 0.18, alpha: 1.0)
-        brothBowlOuter.lineWidth = 3
-        brothBowlOuter.zPosition = 1
-        addChild(brothBowlOuter)
+        // Shadow under the bowl
+        let bowlShadow = SKShapeNode(ellipseOf: CGSize(width: bowlRadius * 2.3, height: bowlRadius * 0.7))
+        bowlShadow.position = CGPoint(x: bowlCenterX + 3, y: bowlCenterY - bowlRadius * 0.55)
+        bowlShadow.fillColor = SKColor(red: 0.04, green: 0.02, blue: 0.01, alpha: 0.35)
+        bowlShadow.strokeColor = .clear
+        bowlShadow.zPosition = -1
+        addChild(bowlShadow)
 
         // Bowl glow (behind fill)
-        brothGlow = SKShapeNode(circleOfRadius: bowlRadius + 20)
+        brothGlow = SKShapeNode(circleOfRadius: bowlRadius + 25)
         brothGlow.position = CGPoint(x: bowlCenterX, y: bowlCenterY)
-        brothGlow.fillColor = SKColor(red: 0.85, green: 0.65, blue: 0.13, alpha: 0.15)
+        brothGlow.fillColor = SKColor(red: 0.85, green: 0.65, blue: 0.13, alpha: 0.12)
         brothGlow.strokeColor = .clear
         brothGlow.zPosition = 0
         addChild(brothGlow)
+
+        // Outer bowl rim
+        brothBowlOuter = SKShapeNode(circleOfRadius: bowlRadius + 8)
+        brothBowlOuter.position = CGPoint(x: bowlCenterX, y: bowlCenterY)
+        brothBowlOuter.fillColor = SKColor(red: 0.85, green: 0.80, blue: 0.72, alpha: 1.0)
+        brothBowlOuter.strokeColor = SKColor(red: 0.70, green: 0.62, blue: 0.50, alpha: 1.0)
+        brothBowlOuter.lineWidth = 2.5
+        brothBowlOuter.zPosition = 1
+        addChild(brothBowlOuter)
 
         // Inner broth fill
         brothBowlFill = SKShapeNode(circleOfRadius: bowlRadius)
@@ -143,13 +158,34 @@ class SeasonBrothScene: SKScene {
         brothBowlFill.zPosition = 2
         addChild(brothBowlFill)
 
+        // Rim highlight (crescent at top for 3D effect)
+        let rimHighlightPath = CGMutablePath()
+        rimHighlightPath.addArc(center: .zero, radius: bowlRadius + 6,
+                                startAngle: .pi * 0.15, endAngle: .pi * 0.85, clockwise: false)
+        let rimHighlight = SKShapeNode(path: rimHighlightPath)
+        rimHighlight.strokeColor = SKColor(white: 1.0, alpha: 0.25)
+        rimHighlight.lineWidth = 3
+        rimHighlight.fillColor = .clear
+        rimHighlight.lineCap = .round
+        rimHighlight.position = CGPoint(x: bowlCenterX, y: bowlCenterY)
+        rimHighlight.zPosition = 2.5
+        addChild(rimHighlight)
+
         // Specular highlight on the broth surface
-        brothHighlight = SKShapeNode(ellipseOf: CGSize(width: bowlRadius * 0.8, height: bowlRadius * 0.4))
+        brothHighlight = SKShapeNode(ellipseOf: CGSize(width: bowlRadius * 0.75, height: bowlRadius * 0.35))
         brothHighlight.position = CGPoint(x: bowlCenterX - 20, y: bowlCenterY + 30)
-        brothHighlight.fillColor = SKColor(white: 1.0, alpha: 0.12)
+        brothHighlight.fillColor = SKColor(white: 1.0, alpha: 0.14)
         brothHighlight.strokeColor = .clear
         brothHighlight.zPosition = 3
         addChild(brothHighlight)
+
+        // Secondary smaller highlight
+        let highlight2 = SKShapeNode(ellipseOf: CGSize(width: bowlRadius * 0.3, height: bowlRadius * 0.15))
+        highlight2.position = CGPoint(x: bowlCenterX + 30, y: bowlCenterY - 10)
+        highlight2.fillColor = SKColor(white: 1.0, alpha: 0.07)
+        highlight2.strokeColor = .clear
+        highlight2.zPosition = 3
+        addChild(highlight2)
 
         // Gentle horizontal sway on the specular highlight
         let sway = SKAction.repeatForever(.sequence([
@@ -158,6 +194,14 @@ class SeasonBrothScene: SKScene {
         ]))
         sway.timingMode = .easeInEaseOut
         brothHighlight.run(sway)
+
+        // Subtle broth surface shimmer
+        let shimmer = SKAction.repeatForever(.sequence([
+            .moveBy(x: -5, y: 2, duration: 2.0),
+            .moveBy(x: 5, y: -2, duration: 2.0)
+        ]))
+        shimmer.timingMode = .easeInEaseOut
+        highlight2.run(shimmer)
     }
 
     // MARK: - Harmony Meter
@@ -184,9 +228,10 @@ class SeasonBrothScene: SKScene {
         harmonyArc = SKShapeNode(path: bgArcPath)
         harmonyArc.position = CGPoint(x: centerX, y: arcCenterY)
         harmonyArc.strokeColor = SKColor(red: 0.2, green: 0.85, blue: 0.3, alpha: 1.0)
-        harmonyArc.lineWidth = 6
+        harmonyArc.lineWidth = 7
         harmonyArc.fillColor = .clear
         harmonyArc.lineCap = .round
+        harmonyArc.glowWidth = 3
         harmonyArc.zPosition = 6
         addChild(harmonyArc)
 
@@ -259,11 +304,11 @@ class SeasonBrothScene: SKScene {
             let y = sliderStartY - CGFloat(index) * sliderSpacing
 
             // Track background
-            let trackBG = SKShapeNode(rectOf: CGSize(width: trackWidth, height: trackHeight),
-                                      cornerRadius: trackHeight / 2)
+            let trackBG = SKShapeNode(rectOf: CGSize(width: trackWidth, height: trackHeight + 2),
+                                      cornerRadius: (trackHeight + 2) / 2)
             trackBG.position = CGPoint(x: centerX + 30, y: y)
-            trackBG.fillColor = SKColor(white: 0.2, alpha: 0.8)
-            trackBG.strokeColor = SKColor(white: 0.3, alpha: 0.5)
+            trackBG.fillColor = SKColor(white: 0.12, alpha: 0.9)
+            trackBG.strokeColor = SKColor(white: 0.22, alpha: 0.4)
             trackBG.lineWidth = 1
             trackBG.zPosition = 10
             addChild(trackBG)
@@ -272,22 +317,30 @@ class SeasonBrothScene: SKScene {
             let track = SKShapeNode(rectOf: CGSize(width: trackWidth, height: trackHeight),
                                     cornerRadius: trackHeight / 2)
             track.position = CGPoint(x: centerX + 30, y: y)
-            track.fillColor = config.2.withAlphaComponent(0.4)
+            track.fillColor = config.2.withAlphaComponent(0.35)
             track.strokeColor = .clear
             track.zPosition = 11
             addChild(track)
 
-            // Thumb
+            // Thumb with inner highlight for depth
             let thumbX = centerX + 30 - trackWidth / 2 + trackWidth * config.1
             let thumb = SKShapeNode(circleOfRadius: thumbRadius)
             thumb.position = CGPoint(x: thumbX, y: y)
             thumb.fillColor = config.2
-            thumb.strokeColor = SKColor(white: 1.0, alpha: 0.6)
+            thumb.strokeColor = SKColor(white: 1.0, alpha: 0.5)
             thumb.lineWidth = 2
             thumb.zPosition = 15
-            thumb.glowWidth = 2
+            thumb.glowWidth = 3
             thumb.name = "thumb_\(index)"
             addChild(thumb)
+
+            // Inner highlight on thumb
+            let thumbHighlight = SKShapeNode(circleOfRadius: thumbRadius * 0.5)
+            thumbHighlight.fillColor = SKColor(white: 1.0, alpha: 0.20)
+            thumbHighlight.strokeColor = .clear
+            thumbHighlight.position = CGPoint(x: -2, y: 2)
+            thumbHighlight.zPosition = 0.1
+            thumb.addChild(thumbHighlight)
 
             // Label on the left
             let label = SKLabelNode(fontNamed: "SFProRounded-Bold")
@@ -329,21 +382,39 @@ class SeasonBrothScene: SKScene {
         let buttonCenterX = size.width / 2
         let buttonCenterY: CGFloat = 70
 
-        let buttonWidth: CGFloat = 180
-        let buttonHeight: CGFloat = 50
+        let buttonWidth: CGFloat = 190
+        let buttonHeight: CGFloat = 52
+
+        // Button shadow
+        let buttonShadow = SKShapeNode(rectOf: CGSize(width: buttonWidth, height: buttonHeight),
+                                        cornerRadius: buttonHeight / 2)
+        buttonShadow.position = CGPoint(x: buttonCenterX + 2, y: buttonCenterY - 3)
+        buttonShadow.fillColor = SKColor(red: 0.06, green: 0.03, blue: 0.01, alpha: 0.4)
+        buttonShadow.strokeColor = .clear
+        buttonShadow.zPosition = 19
+        addChild(buttonShadow)
 
         tasteButton = SKShapeNode(rectOf: CGSize(width: buttonWidth, height: buttonHeight),
                                   cornerRadius: buttonHeight / 2)
         tasteButton.position = CGPoint(x: buttonCenterX, y: buttonCenterY)
         tasteButton.fillColor = SKColor(red: 0.85, green: 0.65, blue: 0.13, alpha: 1.0)
-        tasteButton.strokeColor = SKColor(red: 0.95, green: 0.75, blue: 0.25, alpha: 1.0)
+        tasteButton.strokeColor = SKColor(red: 0.95, green: 0.78, blue: 0.30, alpha: 1.0)
         tasteButton.lineWidth = 2
         tasteButton.zPosition = 20
         tasteButton.name = "tasteButton"
-        tasteButton.glowWidth = 3
+        tasteButton.glowWidth = 4
         addChild(tasteButton)
 
-        tasteButtonLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        // Inner highlight on button
+        let btnHighlight = SKShapeNode(rectOf: CGSize(width: buttonWidth - 16, height: buttonHeight * 0.35),
+                                        cornerRadius: 8)
+        btnHighlight.fillColor = SKColor(white: 1.0, alpha: 0.15)
+        btnHighlight.strokeColor = .clear
+        btnHighlight.position = CGPoint(x: 0, y: buttonHeight * 0.12)
+        btnHighlight.zPosition = 0.1
+        tasteButton.addChild(btnHighlight)
+
+        tasteButtonLabel = SKLabelNode(fontNamed: "SFProRounded-Heavy")
         tasteButtonLabel.text = "Taste"
         tasteButtonLabel.fontSize = 24
         tasteButtonLabel.fontColor = SKColor(red: 0.15, green: 0.10, blue: 0.05, alpha: 1.0)
@@ -352,6 +423,14 @@ class SeasonBrothScene: SKScene {
         tasteButtonLabel.verticalAlignmentMode = .center
         tasteButtonLabel.zPosition = 21
         addChild(tasteButtonLabel)
+
+        // Subtle breathing pulse on the button
+        let breathe = SKAction.repeatForever(.sequence([
+            .scale(to: 1.03, duration: 1.2),
+            .scale(to: 1.0, duration: 1.2)
+        ]))
+        breathe.timingMode = .easeInEaseOut
+        tasteButton.run(breathe)
     }
 
     // MARK: - HUD
@@ -360,8 +439,8 @@ class SeasonBrothScene: SKScene {
         // Title label below progress bar
         attemptLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
         attemptLabel.text = "Season the Broth"
-        attemptLabel.fontSize = 28
-        attemptLabel.fontColor = .white
+        attemptLabel.fontSize = 30
+        attemptLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
         attemptLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
         attemptLabel.horizontalAlignmentMode = .center
         attemptLabel.verticalAlignmentMode = .center
@@ -756,11 +835,51 @@ class SeasonBrothScene: SKScene {
         tasteButton.run(SKAction.fadeAlpha(to: 0, duration: 0.3))
         tasteButtonLabel.run(SKAction.fadeAlpha(to: 0, duration: 0.3))
 
+        // Golden glow burst for completion
+        let goldenBurst = SKShapeNode(circleOfRadius: 10)
+        goldenBurst.fillColor = SKColor(red: 1.0, green: 0.88, blue: 0.40, alpha: 0.3)
+        goldenBurst.strokeColor = .clear
+        goldenBurst.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        goldenBurst.zPosition = 150
+        addChild(goldenBurst)
+        goldenBurst.run(.sequence([
+            .scale(to: 30, duration: 0.6),
+            .fadeOut(withDuration: 0.4),
+            .removeFromParent()
+        ]))
+
+        // Completion sparkles
+        for _ in 0..<15 {
+            let sparkle = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...5))
+            sparkle.fillColor = SKColor(
+                red: CGFloat.random(in: 0.90...1.0),
+                green: CGFloat.random(in: 0.75...0.92),
+                blue: CGFloat.random(in: 0.15...0.45),
+                alpha: 1.0
+            )
+            sparkle.strokeColor = .clear
+            sparkle.glowWidth = 2
+            sparkle.position = CGPoint(x: size.width / 2, y: size.height / 2)
+            sparkle.zPosition = 160
+            addChild(sparkle)
+
+            let angle = CGFloat.random(in: 0...(2 * .pi))
+            let dist = CGFloat.random(in: 60...150)
+            sparkle.run(.sequence([
+                .group([
+                    .moveBy(x: cos(angle) * dist, y: sin(angle) * dist, duration: 0.7),
+                    .fadeOut(withDuration: 0.7),
+                    .scale(to: 0.1, duration: 0.7)
+                ]),
+                .removeFromParent()
+            ]))
+        }
+
         // Final result display
         let finalLabel = SKLabelNode(fontNamed: "SFProRounded-Heavy")
         finalLabel.text = bestScore >= 100 ? "Master Seasoner!" : "Broth Seasoned!"
         finalLabel.fontSize = 44
-        finalLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1.0)
+        finalLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.35, alpha: 1.0)
         finalLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
         finalLabel.horizontalAlignmentMode = .center
         finalLabel.verticalAlignmentMode = .center
@@ -808,31 +927,39 @@ class SeasonBrothScene: SKScene {
 
     private func buildSteamWisps() {
         let bowlPos = CGPoint(x: size.width / 2, y: size.height * 0.62)
-        for i in 0..<4 {
-            let wisp = SKShapeNode(circleOfRadius: CGFloat.random(in: 8...14))
-            wisp.fillColor = SKColor(white: 1.0, alpha: 0.06)
+        // More steam wisps with varied sizes for depth
+        for i in 0..<7 {
+            let radius = CGFloat.random(in: 8...20)
+            let wisp = SKShapeNode(circleOfRadius: radius)
+            wisp.fillColor = SKColor(white: 1.0, alpha: CGFloat.random(in: 0.04...0.08))
             wisp.strokeColor = .clear
             wisp.position = CGPoint(
-                x: bowlPos.x + CGFloat.random(in: -40...40),
-                y: bowlPos.y + 60 + CGFloat(i) * 20
+                x: bowlPos.x + CGFloat.random(in: -55...55),
+                y: bowlPos.y + 60 + CGFloat(i) * 18
             )
             wisp.zPosition = 5
             addChild(wisp)
 
+            let driftDuration = 2.0 + Double(i) * 0.25 + Double.random(in: -0.3...0.3)
             let drift = SKAction.repeatForever(.sequence([
                 .group([
-                    .moveBy(x: CGFloat.random(in: -20...20), y: 40, duration: 2.0 + Double(i) * 0.3),
-                    .fadeAlpha(to: 0.0, duration: 2.0 + Double(i) * 0.3)
+                    .moveBy(x: CGFloat.random(in: -30...30), y: CGFloat.random(in: 40...70), duration: driftDuration),
+                    .fadeAlpha(to: 0.0, duration: driftDuration),
+                    .scale(to: 1.5, duration: driftDuration)
                 ]),
                 .run {
                     wisp.position = CGPoint(
-                        x: bowlPos.x + CGFloat.random(in: -40...40),
-                        y: bowlPos.y + 60
+                        x: bowlPos.x + CGFloat.random(in: -55...55),
+                        y: bowlPos.y + 55 + CGFloat.random(in: 0...15)
                     )
-                    wisp.alpha = CGFloat.random(in: 0.04...0.08)
+                    wisp.alpha = CGFloat.random(in: 0.04...0.09)
+                    wisp.setScale(1.0)
                 }
             ]))
-            wisp.run(drift)
+            wisp.run(.sequence([
+                .wait(forDuration: Double(i) * 0.3),
+                drift
+            ]))
         }
     }
 }

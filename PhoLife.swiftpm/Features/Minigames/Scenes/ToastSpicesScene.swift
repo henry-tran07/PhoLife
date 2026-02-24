@@ -33,8 +33,9 @@ class ToastSpicesScene: SKScene {
 
     // MARK: - Constants
 
-    private let gameDuration: TimeInterval = 30.0
-    private let maxWrongCatches: Int = 3
+    private let gameDuration: TimeInterval = 40.0
+    // Wrong catches deduct points but don't end the game
+
     private let spiceRadius: CGFloat = 20.0
     private let spiceDiameter: CGFloat = 40.0
     private let swipeHitRadius: CGFloat = 30.0
@@ -47,7 +48,7 @@ class ToastSpicesScene: SKScene {
     private var correctCatches: Int = 0
     private var wrongCatches: Int = 0
     private var totalCorrectSpawned: Int = 0
-    private var timeRemaining: TimeInterval = 30.0
+    private var timeRemaining: TimeInterval = 40.0
     private var gameActive: Bool = false
     private var elapsedTime: TimeInterval = 0.0
     private var lastSpawnTime: TimeInterval = 0.0
@@ -56,38 +57,28 @@ class ToastSpicesScene: SKScene {
     // MARK: - HUD Nodes
 
     private var scoreLabel: SKLabelNode!
-    private var wrongLabel: SKLabelNode!
     private var timerLabel: SKLabelNode!
 
     // MARK: - Swipe Tracking
 
     private var swipePath: CGMutablePath?
     private var swipeTrailNode: SKShapeNode?
+    private var swipeParticleTrail: SKEmitterNode?
     private var caughtSpiceIDs: Set<ObjectIdentifier> = []
+
+    // MARK: - Ambient
+
+    private var ambientDustEmitter: SKEmitterNode!
 
     // MARK: - Lifecycle
 
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor(red: 0.28, green: 0.18, blue: 0.10, alpha: 1.0)
+        backgroundColor = SKColor(red: 0.12, green: 0.08, blue: 0.04, alpha: 1.0)
 
         setupBackground()
+        setupPan()
+        setupAmbientParticles()
         setupHUD()
-
-        // Toasting pan at bottom
-        let pan = SKShapeNode(ellipseOf: CGSize(width: 300, height: 100))
-        pan.fillColor = SKColor(red: 0.15, green: 0.15, blue: 0.15, alpha: 1)
-        pan.strokeColor = SKColor(red: 0.25, green: 0.25, blue: 0.25, alpha: 1)
-        pan.lineWidth = 2
-        pan.position = CGPoint(x: size.width / 2, y: 30)
-        pan.zPosition = 1
-        addChild(pan)
-        // Add pan handle
-        let handle = SKShapeNode(rectOf: CGSize(width: 100, height: 16), cornerRadius: 8)
-        handle.fillColor = SKColor(red: 0.2, green: 0.18, blue: 0.15, alpha: 1)
-        handle.strokeColor = .clear
-        handle.position = CGPoint(x: size.width / 2 + 200, y: 30)
-        handle.zPosition = 1
-        addChild(handle)
 
         startGame()
 
@@ -104,30 +95,180 @@ class ToastSpicesScene: SKScene {
     // MARK: - Background
 
     private func setupBackground() {
-        // Warm kitchen gradient effect using layered shapes
-        let bottomGlow = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.4))
-        bottomGlow.position = CGPoint(x: size.width / 2, y: size.height * 0.2)
-        bottomGlow.fillColor = SKColor(red: 0.35, green: 0.20, blue: 0.08, alpha: 0.4)
+        // Deep warm background gradient layers
+        let bottomGlow = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.45))
+        bottomGlow.position = CGPoint(x: size.width / 2, y: size.height * 0.225)
+        bottomGlow.fillColor = SKColor(red: 0.22, green: 0.12, blue: 0.05, alpha: 0.5)
         bottomGlow.strokeColor = .clear
         bottomGlow.zPosition = -10
         addChild(bottomGlow)
 
         // Subtle counter / surface at bottom
-        let counter = SKShapeNode(rectOf: CGSize(width: size.width, height: 60))
-        counter.position = CGPoint(x: size.width / 2, y: 30)
-        counter.fillColor = SKColor(red: 0.22, green: 0.14, blue: 0.07, alpha: 1.0)
-        counter.strokeColor = SKColor(red: 0.35, green: 0.22, blue: 0.10, alpha: 1.0)
-        counter.lineWidth = 2
+        let counter = SKShapeNode(rectOf: CGSize(width: size.width, height: 70))
+        counter.position = CGPoint(x: size.width / 2, y: 35)
+        counter.fillColor = SKColor(red: 0.18, green: 0.11, blue: 0.05, alpha: 1.0)
+        counter.strokeColor = SKColor(red: 0.30, green: 0.18, blue: 0.08, alpha: 0.6)
+        counter.lineWidth = 1.5
         counter.zPosition = -5
         addChild(counter)
 
+        // Counter edge highlight
+        let counterHighlight = SKShapeNode(rectOf: CGSize(width: size.width, height: 2))
+        counterHighlight.position = CGPoint(x: size.width / 2, y: 70)
+        counterHighlight.fillColor = SKColor(red: 0.40, green: 0.25, blue: 0.12, alpha: 0.3)
+        counterHighlight.strokeColor = .clear
+        counterHighlight.zPosition = -4
+        addChild(counterHighlight)
+
         // Warm ambient glow at top
-        let topGlow = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.15))
-        topGlow.position = CGPoint(x: size.width / 2, y: size.height - size.height * 0.075)
-        topGlow.fillColor = SKColor(red: 0.40, green: 0.25, blue: 0.10, alpha: 0.15)
+        let topGlow = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.18))
+        topGlow.position = CGPoint(x: size.width / 2, y: size.height - size.height * 0.09)
+        topGlow.fillColor = SKColor(red: 0.35, green: 0.20, blue: 0.08, alpha: 0.12)
         topGlow.strokeColor = .clear
         topGlow.zPosition = -10
         addChild(topGlow)
+
+        // Central warm radial glow
+        let centerGlow = SKShapeNode(circleOfRadius: 300)
+        centerGlow.position = CGPoint(x: size.width / 2, y: size.height * 0.4)
+        centerGlow.fillColor = SKColor(red: 0.40, green: 0.18, blue: 0.05, alpha: 0.08)
+        centerGlow.strokeColor = .clear
+        centerGlow.zPosition = -9
+        addChild(centerGlow)
+
+        // Vignette ring for edge darkening
+        let vignetteSize = max(size.width, size.height) * 1.2
+        let vignette = SKShapeNode(circleOfRadius: vignetteSize / 2)
+        vignette.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        vignette.fillColor = .clear
+        vignette.strokeColor = SKColor(red: 0.04, green: 0.02, blue: 0.01, alpha: 0.45)
+        vignette.lineWidth = vignetteSize * 0.22
+        vignette.zPosition = -1
+        addChild(vignette)
+    }
+
+    // MARK: - Pan
+
+    private func setupPan() {
+        // Pan shadow
+        let panShadow = SKShapeNode(ellipseOf: CGSize(width: 310, height: 90))
+        panShadow.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.3)
+        panShadow.strokeColor = .clear
+        panShadow.position = CGPoint(x: size.width / 2 + 3, y: 25)
+        panShadow.zPosition = 0.5
+        addChild(panShadow)
+
+        // Toasting pan at bottom
+        let pan = SKShapeNode(ellipseOf: CGSize(width: 300, height: 100))
+        pan.fillColor = SKColor(red: 0.13, green: 0.13, blue: 0.13, alpha: 1)
+        pan.strokeColor = SKColor(red: 0.28, green: 0.28, blue: 0.28, alpha: 1)
+        pan.lineWidth = 3
+        pan.position = CGPoint(x: size.width / 2, y: 30)
+        pan.zPosition = 1
+        addChild(pan)
+
+        // Pan inner surface
+        let panInner = SKShapeNode(ellipseOf: CGSize(width: 260, height: 80))
+        panInner.fillColor = SKColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 0.7)
+        panInner.strokeColor = .clear
+        panInner.position = CGPoint(x: 0, y: 0)
+        panInner.zPosition = 0.1
+        pan.addChild(panInner)
+
+        // Pan highlight
+        let panHighlight = SKShapeNode(ellipseOf: CGSize(width: 200, height: 40))
+        panHighlight.fillColor = SKColor(white: 1.0, alpha: 0.03)
+        panHighlight.strokeColor = .clear
+        panHighlight.position = CGPoint(x: -20, y: 15)
+        panHighlight.zPosition = 0.2
+        pan.addChild(panHighlight)
+
+        // Pan heat glow
+        let heatGlow = SKShapeNode(ellipseOf: CGSize(width: 280, height: 70))
+        heatGlow.fillColor = SKColor(red: 0.85, green: 0.35, blue: 0.05, alpha: 0.06)
+        heatGlow.strokeColor = .clear
+        heatGlow.position = CGPoint(x: size.width / 2, y: 20)
+        heatGlow.zPosition = 0.8
+        addChild(heatGlow)
+        heatGlow.run(.repeatForever(.sequence([
+            .fadeAlpha(to: 0.10, duration: 1.0),
+            .fadeAlpha(to: 0.04, duration: 1.0)
+        ])))
+
+        // Add pan handle with rivet detail
+        let handle = SKShapeNode(rectOf: CGSize(width: 110, height: 18), cornerRadius: 9)
+        handle.fillColor = SKColor(red: 0.22, green: 0.18, blue: 0.14, alpha: 1)
+        handle.strokeColor = SKColor(red: 0.30, green: 0.25, blue: 0.18, alpha: 0.8)
+        handle.lineWidth = 1.5
+        handle.position = CGPoint(x: size.width / 2 + 200, y: 30)
+        handle.zPosition = 1
+        addChild(handle)
+
+        // Rivet on handle
+        let rivet = SKShapeNode(circleOfRadius: 3.5)
+        rivet.fillColor = SKColor(red: 0.30, green: 0.27, blue: 0.22, alpha: 1)
+        rivet.strokeColor = SKColor(white: 0.4, alpha: 0.3)
+        rivet.lineWidth = 0.5
+        rivet.position = CGPoint(x: size.width / 2 + 155, y: 30)
+        rivet.zPosition = 1.1
+        addChild(rivet)
+    }
+
+    // MARK: - Ambient Particles
+
+    private func setupAmbientParticles() {
+        // Floating spice dust particles
+        ambientDustEmitter = SKEmitterNode()
+        ambientDustEmitter.particleTexture = createCircleTexture(radius: 4)
+        ambientDustEmitter.particleBirthRate = 2.5
+        ambientDustEmitter.particleLifetime = 6.0
+        ambientDustEmitter.particleLifetimeRange = 3.0
+        ambientDustEmitter.particleSpeed = 6
+        ambientDustEmitter.particleSpeedRange = 4
+        ambientDustEmitter.emissionAngle = .pi / 2
+        ambientDustEmitter.emissionAngleRange = .pi
+        ambientDustEmitter.particleScale = 0.08
+        ambientDustEmitter.particleScaleRange = 0.05
+        ambientDustEmitter.particleAlpha = 0.08
+        ambientDustEmitter.particleAlphaSpeed = -0.012
+        ambientDustEmitter.particleColor = SKColor(red: 1.0, green: 0.80, blue: 0.45, alpha: 1)
+        ambientDustEmitter.particleColorBlendFactor = 1.0
+        ambientDustEmitter.particlePositionRange = CGVector(dx: size.width * 0.8, dy: size.height * 0.5)
+        ambientDustEmitter.position = CGPoint(x: size.width / 2, y: size.height * 0.45)
+        ambientDustEmitter.zPosition = 0.5
+        addChild(ambientDustEmitter)
+
+        // Subtle smoke wisps rising from pan
+        let smokeEmitter = SKEmitterNode()
+        smokeEmitter.particleTexture = createCircleTexture(radius: 12)
+        smokeEmitter.particleBirthRate = 1.5
+        smokeEmitter.particleLifetime = 3.0
+        smokeEmitter.particleLifetimeRange = 1.0
+        smokeEmitter.particleSpeed = 15
+        smokeEmitter.particleSpeedRange = 8
+        smokeEmitter.emissionAngle = .pi / 2
+        smokeEmitter.emissionAngleRange = .pi / 6
+        smokeEmitter.particleScale = 0.12
+        smokeEmitter.particleScaleSpeed = 0.08
+        smokeEmitter.particleAlpha = 0.05
+        smokeEmitter.particleAlphaSpeed = -0.018
+        smokeEmitter.particleColor = SKColor(red: 0.9, green: 0.8, blue: 0.6, alpha: 1)
+        smokeEmitter.particleColorBlendFactor = 1.0
+        smokeEmitter.particlePositionRange = CGVector(dx: 150, dy: 10)
+        smokeEmitter.position = CGPoint(x: size.width / 2, y: 60)
+        smokeEmitter.zPosition = 2
+        addChild(smokeEmitter)
+    }
+
+    private func createCircleTexture(radius: CGFloat) -> SKTexture {
+        let diameter = radius * 2
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: diameter, height: diameter))
+        let image = renderer.image { ctx in
+            let rect = CGRect(x: 0, y: 0, width: diameter, height: diameter)
+            ctx.cgContext.setFillColor(UIColor.white.cgColor)
+            ctx.cgContext.fillEllipse(in: rect)
+        }
+        return SKTexture(image: image)
     }
 
     // MARK: - HUD
@@ -135,38 +276,37 @@ class ToastSpicesScene: SKScene {
     private func setupHUD() {
         let hudY = size.height - 100
 
-        // Score label — top-left
+        // HUD backdrop strip
+        let hudBG = SKShapeNode(rectOf: CGSize(width: size.width - 100, height: 44), cornerRadius: 12)
+        hudBG.position = CGPoint(x: size.width / 2, y: hudY)
+        hudBG.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.25)
+        hudBG.strokeColor = SKColor(white: 0.25, alpha: 0.2)
+        hudBG.lineWidth = 1
+        hudBG.zPosition = 99
+        addChild(hudBG)
+
+        // Score label -- top-left
         scoreLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
         scoreLabel.text = "Score: 0"
         scoreLabel.fontSize = 28
-        scoreLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.4, alpha: 1.0)
+        scoreLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.45, alpha: 1.0)
         scoreLabel.position = CGPoint(x: 80, y: hudY)
         scoreLabel.horizontalAlignmentMode = .left
         scoreLabel.verticalAlignmentMode = .center
         scoreLabel.zPosition = 100
         addChild(scoreLabel)
 
-        // Timer label — top-center
+        // Timer label -- top-center
         timerLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
-        timerLabel.text = "0:30"
+        timerLabel.text = "0:40"
         timerLabel.fontSize = 30
-        timerLabel.fontColor = .white
+        timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1.0)
         timerLabel.position = CGPoint(x: size.width / 2, y: hudY)
         timerLabel.horizontalAlignmentMode = .center
         timerLabel.verticalAlignmentMode = .center
         timerLabel.zPosition = 100
         addChild(timerLabel)
 
-        // Wrong label — top-right
-        wrongLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
-        wrongLabel.text = "Wrong: 0/3"
-        wrongLabel.fontSize = 26
-        wrongLabel.fontColor = SKColor(red: 1.0, green: 0.6, blue: 0.5, alpha: 1.0)
-        wrongLabel.position = CGPoint(x: size.width - 80, y: hudY)
-        wrongLabel.horizontalAlignmentMode = .right
-        wrongLabel.verticalAlignmentMode = .center
-        wrongLabel.zPosition = 100
-        addChild(wrongLabel)
     }
 
     private func updateHUD() {
@@ -179,17 +319,13 @@ class ToastSpicesScene: SKScene {
 
         // Flash timer red when low
         if timeRemaining <= 5.0 {
-            timerLabel.fontColor = SKColor(red: 1.0, green: 0.3, blue: 0.3, alpha: 1.0)
+            let pulse = CGFloat(abs(sin(timeRemaining * 3)))
+            timerLabel.fontColor = SKColor(red: 1.0, green: 0.2 + 0.15 * pulse,
+                                            blue: 0.2 + 0.15 * pulse, alpha: 1.0)
         } else {
-            timerLabel.fontColor = .white
+            timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1.0)
         }
 
-        wrongLabel.text = "Wrong: \(wrongCatches)/\(maxWrongCatches)"
-        if wrongCatches >= 2 {
-            wrongLabel.fontColor = SKColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0)
-        } else {
-            wrongLabel.fontColor = SKColor(red: 1.0, green: 0.6, blue: 0.5, alpha: 1.0)
-        }
     }
 
     // MARK: - Game Control
@@ -241,12 +377,12 @@ class ToastSpicesScene: SKScene {
     }
 
     private func calculateStars() -> Int {
-        // 3 stars: caught all 5 distinct correct types with 0 wrong
-        // 2 stars: 4+ correct catches with 1 or fewer wrong
+        // 3 stars: caught 5+ correct spices
+        // 2 stars: caught 4+ correct spices
         // 1 star: everything else
-        if correctCatches >= 5 && wrongCatches == 0 {
+        if correctCatches >= 5 {
             return 3
-        } else if correctCatches >= 4 && wrongCatches <= 1 {
+        } else if correctCatches >= 4 {
             return 2
         } else {
             return 1
@@ -354,22 +490,46 @@ class ToastSpicesScene: SKScene {
         container.userData?["isCorrect"] = data.isCorrect
         container.userData?["spiceName"] = data.name
 
-        // Circle background
+        // Outer glow ring for correct spices
+        if data.isCorrect {
+            let outerGlow = SKShapeNode(circleOfRadius: spiceRadius + 5)
+            outerGlow.fillColor = SKColor(red: 0.85, green: 0.65, blue: 0.25, alpha: 0.10)
+            outerGlow.strokeColor = .clear
+            outerGlow.zPosition = -1
+            container.addChild(outerGlow)
+        }
+
+        // Circle background with improved colors
         let circle = SKShapeNode(circleOfRadius: spiceRadius)
         if data.isCorrect {
-            // Warm brown/amber tint for correct spices
             circle.fillColor = correctCircleColor(for: data)
-            circle.strokeColor = SKColor(red: 0.85, green: 0.65, blue: 0.30, alpha: 0.9)
+            circle.strokeColor = SKColor(red: 0.90, green: 0.70, blue: 0.30, alpha: 0.9)
         } else {
-            // Reddish tint for decoy spices
-            circle.fillColor = SKColor(red: 0.55, green: 0.18, blue: 0.15, alpha: 0.9)
-            circle.strokeColor = SKColor(red: 0.75, green: 0.30, blue: 0.25, alpha: 0.9)
+            circle.fillColor = SKColor(red: 0.50, green: 0.15, blue: 0.12, alpha: 0.95)
+            circle.strokeColor = SKColor(red: 0.70, green: 0.28, blue: 0.22, alpha: 0.9)
         }
         circle.lineWidth = 2.5
-        circle.glowWidth = 1.0
+        circle.glowWidth = data.isCorrect ? 2.0 : 0.5
         container.addChild(circle)
 
-        // Symbol label
+        // Inner highlight for depth
+        let innerHighlight = SKShapeNode(circleOfRadius: spiceRadius * 0.7)
+        innerHighlight.fillColor = SKColor(white: 1.0, alpha: 0.05)
+        innerHighlight.strokeColor = .clear
+        innerHighlight.position = CGPoint(x: -2, y: 3)
+        innerHighlight.zPosition = 0.1
+        circle.addChild(innerHighlight)
+
+        // Symbol label with shadow
+        let shadowLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        shadowLabel.text = data.symbol
+        shadowLabel.fontSize = 22
+        shadowLabel.fontColor = SKColor(red: 0, green: 0, blue: 0, alpha: 0.3)
+        shadowLabel.verticalAlignmentMode = .center
+        shadowLabel.horizontalAlignmentMode = .center
+        shadowLabel.position = CGPoint(x: 1, y: -1)
+        container.addChild(shadowLabel)
+
         let label = SKLabelNode(fontNamed: "SFProRounded-Bold")
         label.text = data.symbol
         label.fontSize = 22
@@ -378,6 +538,16 @@ class ToastSpicesScene: SKScene {
         label.horizontalAlignmentMode = .center
         label.position = CGPoint.zero
         container.addChild(label)
+
+        // Name label below for identification
+        let nameLabel = SKLabelNode(fontNamed: "SFProRounded-Medium")
+        nameLabel.text = data.name
+        nameLabel.fontSize = 10
+        nameLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)
+        nameLabel.verticalAlignmentMode = .top
+        nameLabel.horizontalAlignmentMode = .center
+        nameLabel.position = CGPoint(x: 0, y: -spiceRadius - 4)
+        container.addChild(nameLabel)
 
         // Subtle pulsing glow for correct spices
         if data.isCorrect {
@@ -418,16 +588,35 @@ class ToastSpicesScene: SKScene {
         swipePath = CGMutablePath()
         swipePath?.move(to: location)
 
-        // Create the trail shape node
+        // Create the trail shape node with warm golden color
         let trail = SKShapeNode()
-        trail.strokeColor = SKColor(red: 1.0, green: 0.9, blue: 0.5, alpha: 0.8)
-        trail.lineWidth = 3.0
+        trail.strokeColor = SKColor(red: 1.0, green: 0.88, blue: 0.45, alpha: 0.85)
+        trail.lineWidth = 4.0
         trail.lineCap = .round
         trail.lineJoin = .round
         trail.zPosition = 90
-        trail.glowWidth = 2.0
+        trail.glowWidth = 3.0
         addChild(trail)
         swipeTrailNode = trail
+
+        // Add particle trail following touch
+        let particleTrail = SKEmitterNode()
+        particleTrail.particleTexture = createCircleTexture(radius: 4)
+        particleTrail.particleBirthRate = 40
+        particleTrail.particleLifetime = 0.4
+        particleTrail.particleLifetimeRange = 0.15
+        particleTrail.particleSpeed = 0
+        particleTrail.particleScale = 0.1
+        particleTrail.particleScaleSpeed = -0.2
+        particleTrail.particleAlpha = 0.5
+        particleTrail.particleAlphaSpeed = -1.2
+        particleTrail.particleColor = SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1)
+        particleTrail.particleColorBlendFactor = 1.0
+        particleTrail.position = location
+        particleTrail.zPosition = 89
+        particleTrail.targetNode = self
+        addChild(particleTrail)
+        swipeParticleTrail = particleTrail
 
         // Also check if touch started directly on a spice
         checkSwipeHit(at: location)
@@ -444,6 +633,9 @@ class ToastSpicesScene: SKScene {
         if let path = swipePath {
             swipeTrailNode?.path = path
         }
+
+        // Move particle emitter
+        swipeParticleTrail?.position = location
 
         // Check for spice hits along the swipe
         checkSwipeHit(at: location)
@@ -462,12 +654,21 @@ class ToastSpicesScene: SKScene {
     }
 
     private func fadeOutSwipeTrail() {
-        guard let trail = swipeTrailNode else { return }
-        swipeTrailNode = nil
-        trail.run(SKAction.sequence([
-            SKAction.fadeOut(withDuration: 0.3),
-            SKAction.removeFromParent()
-        ]))
+        if let trail = swipeTrailNode {
+            swipeTrailNode = nil
+            trail.run(SKAction.sequence([
+                SKAction.fadeOut(withDuration: 0.25),
+                SKAction.removeFromParent()
+            ]))
+        }
+        if let particleTrail = swipeParticleTrail {
+            swipeParticleTrail = nil
+            particleTrail.particleBirthRate = 0
+            particleTrail.run(SKAction.sequence([
+                SKAction.wait(forDuration: 0.5),
+                SKAction.removeFromParent()
+            ]))
+        }
     }
 
     // MARK: - Swipe Hit Detection
@@ -506,29 +707,33 @@ class ToastSpicesScene: SKScene {
             comboCount += 1
             HapticManager.shared.medium()
             showGoldenBurst(at: node.position)
-            showFloatingText("+2", color: SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1.0), at: node.position)
+            showFloatingText("+2", color: SKColor(red: 1.0, green: 0.88, blue: 0.35, alpha: 1.0), at: node.position)
             AudioManager.shared.playSFX("success-chime")
 
             // Show combo counter when combo >= 2
             if comboCount >= 2 {
                 let comboLabel = SKLabelNode(fontNamed: "SFProRounded-Heavy")
                 comboLabel.text = "Combo x\(comboCount)!"
-                comboLabel.fontSize = 32
-                comboLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1.0)
-                comboLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
+                comboLabel.fontSize = 34
+                comboLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.35, alpha: 1.0)
+                comboLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.45)
                 comboLabel.horizontalAlignmentMode = .center
                 comboLabel.verticalAlignmentMode = .center
                 comboLabel.zPosition = 110
-                comboLabel.setScale(0.5)
+                comboLabel.setScale(0.3)
+                comboLabel.alpha = 0
                 addChild(comboLabel)
                 comboLabel.run(SKAction.sequence([
                     SKAction.group([
-                        SKAction.scale(to: 1.2, duration: 0.15),
-                        SKAction.fadeAlpha(to: 1.0, duration: 0.1)
+                        SKAction.scale(to: 1.2, duration: 0.12),
+                        SKAction.fadeAlpha(to: 1.0, duration: 0.08)
                     ]),
-                    SKAction.scale(to: 1.0, duration: 0.1),
-                    SKAction.wait(forDuration: 0.5),
-                    SKAction.fadeOut(withDuration: 0.3),
+                    SKAction.scale(to: 1.0, duration: 0.08),
+                    SKAction.wait(forDuration: 0.4),
+                    SKAction.group([
+                        SKAction.fadeOut(withDuration: 0.3),
+                        SKAction.moveBy(x: 0, y: 20, duration: 0.3)
+                    ]),
                     SKAction.removeFromParent()
                 ]))
             }
@@ -545,53 +750,63 @@ class ToastSpicesScene: SKScene {
             shakeScreen()
         }
 
-        // Shrink and remove the caught spice
+        // Shrink and remove the caught spice with pop feel
         node.run(SKAction.sequence([
             SKAction.group([
-                SKAction.scale(to: 0.0, duration: 0.15),
-                SKAction.fadeOut(withDuration: 0.15)
+                SKAction.scale(to: 1.3, duration: 0.06),
+            ]),
+            SKAction.group([
+                SKAction.scale(to: 0.0, duration: 0.12),
+                SKAction.fadeOut(withDuration: 0.12)
             ]),
             SKAction.removeFromParent()
         ]))
 
         updateHUD()
 
-        // Check for 3 wrong catches
-        if wrongCatches >= maxWrongCatches {
-            // Brief delay to let the flash play, then end
-            run(SKAction.sequence([
-                SKAction.wait(forDuration: 0.5),
-                SKAction.run { [weak self] in
-                    self?.endGame()
-                }
-            ]))
-        }
     }
 
     // MARK: - Visual Effects
 
     private func showGoldenBurst(at position: CGPoint) {
-        let particleCount = 20
+        // Expanding ring
+        let ring = SKShapeNode(circleOfRadius: 12)
+        ring.fillColor = .clear
+        ring.strokeColor = SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 0.7)
+        ring.lineWidth = 2.5
+        ring.position = position
+        ring.zPosition = 80
+        addChild(ring)
+        ring.run(SKAction.sequence([
+            SKAction.group([
+                SKAction.scale(to: 4.0, duration: 0.35),
+                SKAction.fadeOut(withDuration: 0.35)
+            ]),
+            SKAction.removeFromParent()
+        ]))
+
+        // Particles
+        let particleCount = 22
         for _ in 0..<particleCount {
             let particle = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...5))
             particle.fillColor = SKColor(
-                red: CGFloat.random(in: 0.9...1.0),
-                green: CGFloat.random(in: 0.7...0.9),
-                blue: CGFloat.random(in: 0.1...0.4),
+                red: CGFloat.random(in: 0.90...1.0),
+                green: CGFloat.random(in: 0.72...0.92),
+                blue: CGFloat.random(in: 0.10...0.35),
                 alpha: 1.0
             )
             particle.strokeColor = .clear
             particle.position = position
             particle.zPosition = 80
-            particle.glowWidth = 1.5
+            particle.glowWidth = 2.0
             addChild(particle)
 
             // Radial outward motion
             let angle = CGFloat.random(in: 0...(2 * .pi))
-            let distance = CGFloat.random(in: 30...80)
+            let distance = CGFloat.random(in: 35...90)
             let dx = cos(angle) * distance
             let dy = sin(angle) * distance
-            let lifetime = Double.random(in: 0.3...0.6)
+            let lifetime = Double.random(in: 0.3...0.55)
 
             particle.run(SKAction.sequence([
                 SKAction.group([
@@ -606,59 +821,86 @@ class ToastSpicesScene: SKScene {
 
     private func showRedFlash(at position: CGPoint) {
         let flash = SKShapeNode(circleOfRadius: 35)
-        flash.fillColor = SKColor(red: 1.0, green: 0.1, blue: 0.1, alpha: 0.6)
-        flash.strokeColor = SKColor(red: 1.0, green: 0.3, blue: 0.3, alpha: 0.9)
+        flash.fillColor = SKColor(red: 1.0, green: 0.08, blue: 0.08, alpha: 0.5)
+        flash.strokeColor = SKColor(red: 1.0, green: 0.25, blue: 0.25, alpha: 0.8)
         flash.lineWidth = 3
         flash.position = position
         flash.zPosition = 80
-        flash.glowWidth = 4
+        flash.glowWidth = 5
         addChild(flash)
 
         flash.run(SKAction.sequence([
             SKAction.group([
-                SKAction.scale(to: 2.0, duration: 0.25),
-                SKAction.fadeOut(withDuration: 0.25)
+                SKAction.scale(to: 2.2, duration: 0.22),
+                SKAction.fadeOut(withDuration: 0.22)
             ]),
             SKAction.removeFromParent()
         ]))
 
         // X-mark for wrong catch
-        let xMark = SKLabelNode(fontNamed: "SFProRounded-Bold")
-        xMark.text = "✕"
-        xMark.fontSize = 36
+        let xMark = SKLabelNode(fontNamed: "SFProRounded-Heavy")
+        xMark.text = "X"
+        xMark.fontSize = 38
         xMark.fontColor = SKColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0)
         xMark.position = position
         xMark.zPosition = 85
         xMark.verticalAlignmentMode = .center
         xMark.horizontalAlignmentMode = .center
+        xMark.setScale(0.5)
         addChild(xMark)
 
         xMark.run(SKAction.sequence([
+            SKAction.scale(to: 1.2, duration: 0.1),
             SKAction.group([
-                SKAction.moveBy(x: 0, y: 30, duration: 0.4),
-                SKAction.fadeOut(withDuration: 0.4)
+                SKAction.moveBy(x: 0, y: 35, duration: 0.4),
+                SKAction.fadeOut(withDuration: 0.4),
+                SKAction.scale(to: 0.8, duration: 0.4)
             ]),
             SKAction.removeFromParent()
         ]))
+
+        // Red scatter particles
+        for _ in 0..<8 {
+            let particle = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...4))
+            particle.fillColor = SKColor(red: 1.0, green: 0.2, blue: 0.15, alpha: 0.9)
+            particle.strokeColor = .clear
+            particle.position = position
+            particle.zPosition = 82
+            addChild(particle)
+            let angle = CGFloat.random(in: 0...(2 * .pi))
+            let dist = CGFloat.random(in: 20...50)
+            particle.run(.sequence([
+                .group([
+                    .moveBy(x: cos(angle) * dist, y: sin(angle) * dist, duration: 0.3),
+                    .fadeOut(withDuration: 0.3)
+                ]),
+                .removeFromParent()
+            ]))
+        }
     }
 
     private func showFloatingText(_ text: String, color: SKColor, at position: CGPoint) {
         let label = SKLabelNode(fontNamed: "SFProRounded-Bold")
         label.text = text
-        label.fontSize = 24
+        label.fontSize = 26
         label.fontColor = color
         label.position = CGPoint(x: position.x, y: position.y + 25)
         label.zPosition = 95
         label.horizontalAlignmentMode = .center
         label.verticalAlignmentMode = .center
+        label.setScale(0.6)
         addChild(label)
 
         label.run(SKAction.sequence([
             SKAction.group([
-                SKAction.moveBy(x: 0, y: 50, duration: 0.6),
+                SKAction.scale(to: 1.1, duration: 0.1),
+            ]),
+            SKAction.group([
+                SKAction.moveBy(x: 0, y: 50, duration: 0.55),
+                SKAction.scale(to: 0.9, duration: 0.55),
                 SKAction.sequence([
-                    SKAction.wait(forDuration: 0.3),
-                    SKAction.fadeOut(withDuration: 0.3)
+                    SKAction.wait(forDuration: 0.25),
+                    SKAction.fadeOut(withDuration: 0.30)
                 ])
             ]),
             SKAction.removeFromParent()
@@ -676,10 +918,10 @@ class ToastSpicesScene: SKScene {
                 SKAction.moveBy(x: -amp, y: 0, duration: dur),
             ]))
         } else {
-            // No camera — show a brief red overlay flash
+            // No camera -- show a brief red overlay flash
             let overlay = SKShapeNode(rectOf: size)
             overlay.position = CGPoint(x: size.width / 2, y: size.height / 2)
-            overlay.fillColor = SKColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 0.15)
+            overlay.fillColor = SKColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 0.12)
             overlay.strokeColor = .clear
             overlay.zPosition = 200
             addChild(overlay)

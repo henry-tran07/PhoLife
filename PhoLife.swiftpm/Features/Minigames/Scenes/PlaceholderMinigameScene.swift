@@ -33,6 +33,11 @@ class PlaceholderMinigameScene: SKScene {
         instructionLabel.horizontalAlignmentMode = .center
         instructionLabel.verticalAlignmentMode = .center
         addChild(instructionLabel)
+
+        run(.sequence([
+            .wait(forDuration: 1.5),
+            .run { [weak self] in self?.onComplete?(85, 2) }
+        ]))
     }
 
     // MARK: - Touch Handling

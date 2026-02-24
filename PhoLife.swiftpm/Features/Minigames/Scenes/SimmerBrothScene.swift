@@ -9,7 +9,7 @@ class SimmerBrothScene: SKScene {
 
     // MARK: - Game Config
 
-    private let gameDuration: TimeInterval = 25.0
+    private let gameDuration: TimeInterval = 35.0
     private let postGameDelay: TimeInterval = 1.2
 
     // Player bar physics (Stardew-style: tap to rise, release to fall)
@@ -18,7 +18,7 @@ class SimmerBrothScene: SKScene {
     private let maxVelocity: CGFloat = 0.5           // clamp velocity
     private let startPosition: CGFloat = 0.3
 
-    // Green zone (the "fish") — moves on its own
+    // Green zone (the "fish") -- moves on its own
     private let zoneStartSize: CGFloat = 0.22        // 22% of gauge at start
     private let zoneEndSize: CGFloat = 0.15          // shrinks to 15%
     private let zoneBaseSpeed: CGFloat = 0.25        // base movement speed
@@ -28,7 +28,7 @@ class SimmerBrothScene: SKScene {
 
     // MARK: - State
 
-    private var playerPosition: CGFloat = 0.3        // 0…1
+    private var playerPosition: CGFloat = 0.3        // 0...1
     private var playerVelocity: CGFloat = 0
     private var isTouching: Bool = false
     private var elapsedTime: TimeInterval = 0
@@ -63,15 +63,18 @@ class SimmerBrothScene: SKScene {
 
     // Gauge
     private var gaugeBackground: SKShapeNode!
+    private var gaugeFillTrack: SKShapeNode!
     private var gaugeZoneBand: SKShapeNode!
     private var gaugeZoneGlow: SKShapeNode!
     private var gaugeIndicator: SKShapeNode!
+    private var gaugeIndicatorGlow: SKShapeNode!
 
     // Pot & stove
     private var stoveNode: SKShapeNode!
     private var potBody: SKShapeNode!
     private var potRim: SKShapeNode!
     private var brothSurface: SKShapeNode!
+    private var brothHighlight: SKShapeNode!
 
     // Flames
     private var flameNodes: [SKShapeNode] = []
@@ -87,14 +90,19 @@ class SimmerBrothScene: SKScene {
     private var potGlow: SKShapeNode!
     private var lidNode: SKShapeNode!
 
+    // Ambient
+    private var ambientEmitter: SKEmitterNode!
+    private var flameGlow: SKShapeNode!
+
     // HUD
     private var timerLabel: SKLabelNode!
+    private var zonePercentLabel: SKLabelNode!
     private var instructionLabel: SKLabelNode!
 
     // MARK: - Lifecycle
 
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor(red: 0.14, green: 0.09, blue: 0.05, alpha: 1)
+        backgroundColor = SKColor(red: 0.10, green: 0.06, blue: 0.03, alpha: 1)
 
         buildBackground()
         buildGauge()
@@ -103,13 +111,13 @@ class SimmerBrothScene: SKScene {
         buildBrothSurface()
         buildBubbleEmitter()
         buildSteamEmitter()
+        buildAmbientParticles()
         buildHUD()
 
         playerPosition = startPosition
         zoneCenter = 0.5
-        zoneVelocity = zoneBaseSpeed * (Bool.random() ? 1 : -1)
-        zoneDirectionTimer = TimeInterval.random(in: zoneDirectionMinTime...zoneDirectionMaxTime)
-
+        zoneVelocity = zoneBaseSpeed
+        zoneDirectionTimer = zoneDirectionMaxTime
         gameActive = true
 
         // Entrance curtain
@@ -127,24 +135,43 @@ class SimmerBrothScene: SKScene {
     private func buildBackground() {
         let floor = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.25))
         floor.position = CGPoint(x: size.width / 2, y: size.height * 0.125)
-        floor.fillColor = SKColor(red: 0.10, green: 0.06, blue: 0.03, alpha: 1)
+        floor.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.02, alpha: 1)
         floor.strokeColor = .clear
         floor.zPosition = -10
         addChild(floor)
 
         let wall = SKShapeNode(rectOf: CGSize(width: size.width, height: size.height * 0.75))
         wall.position = CGPoint(x: size.width / 2, y: size.height * 0.625)
-        wall.fillColor = SKColor(red: 0.16, green: 0.10, blue: 0.06, alpha: 1)
+        wall.fillColor = SKColor(red: 0.13, green: 0.08, blue: 0.04, alpha: 1)
         wall.strokeColor = .clear
         wall.zPosition = -10
         addChild(wall)
 
-        let glow = SKShapeNode(circleOfRadius: 220)
+        // Warm central glow behind pot
+        let glow = SKShapeNode(circleOfRadius: 240)
         glow.position = CGPoint(x: potCenterX, y: potCenterY - 30)
-        glow.fillColor = SKColor(red: 0.35, green: 0.15, blue: 0.05, alpha: 0.15)
+        glow.fillColor = SKColor(red: 0.40, green: 0.18, blue: 0.05, alpha: 0.12)
         glow.strokeColor = .clear
         glow.zPosition = -5
         addChild(glow)
+
+        // Secondary glow under stove
+        let stoveGlow = SKShapeNode(circleOfRadius: 180)
+        stoveGlow.position = CGPoint(x: potCenterX, y: potCenterY - potHeight / 2 - 20)
+        stoveGlow.fillColor = SKColor(red: 0.85, green: 0.30, blue: 0.05, alpha: 0.06)
+        stoveGlow.strokeColor = .clear
+        stoveGlow.zPosition = -4
+        addChild(stoveGlow)
+
+        // Vignette for depth
+        let vignetteSize = max(size.width, size.height) * 1.2
+        let vignette = SKShapeNode(circleOfRadius: vignetteSize / 2)
+        vignette.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        vignette.fillColor = .clear
+        vignette.strokeColor = SKColor(red: 0.03, green: 0.02, blue: 0.01, alpha: 0.5)
+        vignette.lineWidth = vignetteSize * 0.22
+        vignette.zPosition = -1
+        addChild(vignette)
     }
 
     // MARK: - Gauge
@@ -152,33 +179,74 @@ class SimmerBrothScene: SKScene {
     private func buildGauge() {
         let gaugeRect = CGRect(x: -gaugeWidth / 2, y: 0, width: gaugeWidth, height: gaugeHeight)
 
+        // Shadow behind gauge
+        let gaugeShadow = SKShapeNode(rect: gaugeRect.insetBy(dx: -3, dy: -3), cornerRadius: 10)
+        gaugeShadow.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.35)
+        gaugeShadow.strokeColor = .clear
+        gaugeShadow.position = CGPoint(x: gaugeX + 2, y: gaugeBottomY - 2)
+        gaugeShadow.zPosition = 4.5
+        addChild(gaugeShadow)
+
         // Dark background
         gaugeBackground = SKShapeNode(rect: gaugeRect, cornerRadius: 8)
-        gaugeBackground.fillColor = SKColor(red: 0.10, green: 0.10, blue: 0.10, alpha: 1)
-        gaugeBackground.strokeColor = SKColor(white: 0.30, alpha: 1)
+        gaugeBackground.fillColor = SKColor(red: 0.08, green: 0.08, blue: 0.08, alpha: 1)
+        gaugeBackground.strokeColor = SKColor(white: 0.25, alpha: 0.8)
         gaugeBackground.lineWidth = 2
         gaugeBackground.position = CGPoint(x: gaugeX, y: gaugeBottomY)
         gaugeBackground.zPosition = 5
         addChild(gaugeBackground)
 
-        // Green zone band (moves like the fish)
+        // Inner fill track (subtle gradient simulation)
+        let innerRect = CGRect(x: -gaugeWidth / 2 + 3, y: 3,
+                               width: gaugeWidth - 6, height: gaugeHeight - 6)
+        gaugeFillTrack = SKShapeNode(rect: innerRect, cornerRadius: 5)
+        gaugeFillTrack.fillColor = SKColor(red: 0.12, green: 0.10, blue: 0.08, alpha: 1)
+        gaugeFillTrack.strokeColor = .clear
+        gaugeFillTrack.position = CGPoint(x: gaugeX, y: gaugeBottomY)
+        gaugeFillTrack.zPosition = 5.2
+        addChild(gaugeFillTrack)
+
+        // Tick marks on gauge
+        for i in 1..<10 {
+            let tickY = gaugeBottomY + CGFloat(i) * (gaugeHeight / 10)
+            let tickWidth: CGFloat = i == 5 ? gaugeWidth * 0.6 : gaugeWidth * 0.3
+            let tick = SKShapeNode(rectOf: CGSize(width: tickWidth, height: 1))
+            tick.fillColor = SKColor(white: 0.25, alpha: 0.3)
+            tick.strokeColor = .clear
+            tick.position = CGPoint(x: gaugeX, y: tickY)
+            tick.zPosition = 5.3
+            addChild(tick)
+        }
+
+        // Green zone glow (outer soft glow)
         gaugeZoneGlow = SKShapeNode()
         gaugeZoneGlow.position = CGPoint(x: gaugeX, y: gaugeBottomY)
         gaugeZoneGlow.zPosition = 6
         addChild(gaugeZoneGlow)
 
+        // Green zone band (moves like the fish)
         gaugeZoneBand = SKShapeNode()
         gaugeZoneBand.position = CGPoint(x: gaugeX, y: gaugeBottomY)
         gaugeZoneBand.zPosition = 6.5
         addChild(gaugeZoneBand)
 
+        // Indicator glow (behind indicator)
+        gaugeIndicatorGlow = SKShapeNode(rect: CGRect(x: -gaugeWidth / 2 - 10, y: -5,
+                                                       width: gaugeWidth + 20, height: 10),
+                                          cornerRadius: 5)
+        gaugeIndicatorGlow.fillColor = SKColor(white: 1.0, alpha: 0.10)
+        gaugeIndicatorGlow.strokeColor = .clear
+        gaugeIndicatorGlow.zPosition = 7.5
+        gaugeIndicatorGlow.position = CGPoint(x: gaugeX, y: gaugeBottomY)
+        addChild(gaugeIndicatorGlow)
+
         // White player indicator bar
-        gaugeIndicator = SKShapeNode(rect: CGRect(x: -gaugeWidth / 2 - 6, y: -2,
-                                                    width: gaugeWidth + 12, height: 4),
-                                     cornerRadius: 2)
+        gaugeIndicator = SKShapeNode(rect: CGRect(x: -gaugeWidth / 2 - 6, y: -2.5,
+                                                    width: gaugeWidth + 12, height: 5),
+                                     cornerRadius: 2.5)
         gaugeIndicator.fillColor = .white
         gaugeIndicator.strokeColor = .clear
-        gaugeIndicator.glowWidth = 3
+        gaugeIndicator.glowWidth = 4
         gaugeIndicator.zPosition = 8
         gaugeIndicator.position = CGPoint(x: gaugeX, y: gaugeBottomY)
         addChild(gaugeIndicator)
@@ -203,26 +271,43 @@ class SimmerBrothScene: SKScene {
                           width: gaugeWidth + 4, height: bandH)
 
         // Glow layer
-        gaugeZoneGlow.path = CGPath(roundedRect: rect.insetBy(dx: -4, dy: -4),
-                                     cornerWidth: 6, cornerHeight: 6, transform: nil)
-        gaugeZoneGlow.fillColor = SKColor(red: 0.2, green: 0.9, blue: 0.3, alpha: 0.10)
+        gaugeZoneGlow.path = CGPath(roundedRect: rect.insetBy(dx: -5, dy: -5),
+                                     cornerWidth: 7, cornerHeight: 7, transform: nil)
+        gaugeZoneGlow.fillColor = SKColor(red: 0.2, green: 0.9, blue: 0.3, alpha: 0.08)
         gaugeZoneGlow.strokeColor = .clear
-        gaugeZoneGlow.glowWidth = 6
+        gaugeZoneGlow.glowWidth = 8
 
-        // Sharp band
+        // Sharp band with improved gradient feel
         gaugeZoneBand.path = CGPath(roundedRect: rect, cornerWidth: 4,
                                      cornerHeight: 4, transform: nil)
-        gaugeZoneBand.fillColor = SKColor(red: 0.2, green: 0.85, blue: 0.3, alpha: 0.25)
-        gaugeZoneBand.strokeColor = SKColor(red: 0.2, green: 0.9, blue: 0.3, alpha: 0.7)
+
+        let inZone = isInSimmerZone()
+        if inZone {
+            gaugeZoneBand.fillColor = SKColor(red: 0.2, green: 0.88, blue: 0.35, alpha: 0.30)
+            gaugeZoneBand.strokeColor = SKColor(red: 0.25, green: 0.95, blue: 0.35, alpha: 0.8)
+        } else {
+            gaugeZoneBand.fillColor = SKColor(red: 0.2, green: 0.85, blue: 0.3, alpha: 0.22)
+            gaugeZoneBand.strokeColor = SKColor(red: 0.2, green: 0.9, blue: 0.3, alpha: 0.6)
+        }
         gaugeZoneBand.lineWidth = 1.5
-        gaugeZoneBand.glowWidth = 3
+        gaugeZoneBand.glowWidth = inZone ? 4 : 2.5
     }
 
     private func updateGaugeIndicator() {
-        gaugeIndicator.position = CGPoint(x: gaugeX,
-                                           y: gaugeBottomY + playerPosition * gaugeHeight)
+        let yPos = gaugeBottomY + playerPosition * gaugeHeight
+        gaugeIndicator.position = CGPoint(x: gaugeX, y: yPos)
+        gaugeIndicatorGlow.position = CGPoint(x: gaugeX, y: yPos)
 
-        gaugeIndicator.fillColor = .white
+        let inZone = isInSimmerZone()
+        if inZone {
+            gaugeIndicator.fillColor = SKColor(red: 0.7, green: 1.0, blue: 0.75, alpha: 1)
+            gaugeIndicator.glowWidth = 5
+            gaugeIndicatorGlow.fillColor = SKColor(red: 0.3, green: 0.9, blue: 0.4, alpha: 0.15)
+        } else {
+            gaugeIndicator.fillColor = .white
+            gaugeIndicator.glowWidth = 3
+            gaugeIndicatorGlow.fillColor = SKColor(white: 1.0, alpha: 0.08)
+        }
     }
 
     // MARK: - Stove & Pot
@@ -230,48 +315,114 @@ class SimmerBrothScene: SKScene {
     private func buildStoveAndPot() {
         let stoveY = potCenterY - potHeight / 2 - stoveHeight / 2 + 10
 
+        // Stove shadow
+        let stoveShadow = SKShapeNode(rectOf: CGSize(width: stoveWidth + 10, height: stoveHeight + 6),
+                                       cornerRadius: 8)
+        stoveShadow.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.3)
+        stoveShadow.strokeColor = .clear
+        stoveShadow.position = CGPoint(x: potCenterX + 3, y: stoveY - 3)
+        stoveShadow.zPosition = 0.5
+        addChild(stoveShadow)
+
         stoveNode = SKShapeNode(rectOf: CGSize(width: stoveWidth, height: stoveHeight),
                                 cornerRadius: 6)
-        stoveNode.fillColor = SKColor(red: 0.12, green: 0.12, blue: 0.12, alpha: 1)
+        stoveNode.fillColor = SKColor(red: 0.10, green: 0.10, blue: 0.10, alpha: 1)
         stoveNode.strokeColor = SKColor(red: 0.22, green: 0.22, blue: 0.22, alpha: 1)
         stoveNode.lineWidth = 2
         stoveNode.position = CGPoint(x: potCenterX, y: stoveY)
         stoveNode.zPosition = 1
         addChild(stoveNode)
 
+        // Stove top highlight
+        let stoveHighlight = SKShapeNode(rectOf: CGSize(width: stoveWidth - 20, height: 2))
+        stoveHighlight.fillColor = SKColor(white: 0.2, alpha: 0.15)
+        stoveHighlight.strokeColor = .clear
+        stoveHighlight.position = CGPoint(x: potCenterX, y: stoveY + stoveHeight / 2 - 2)
+        stoveHighlight.zPosition = 1.2
+        addChild(stoveHighlight)
+
+        // Burner ring
         let ring = SKShapeNode(circleOfRadius: 80)
         ring.fillColor = .clear
-        ring.strokeColor = SKColor(red: 0.30, green: 0.20, blue: 0.15, alpha: 0.6)
+        ring.strokeColor = SKColor(red: 0.30, green: 0.20, blue: 0.15, alpha: 0.5)
         ring.lineWidth = 3
         ring.position = CGPoint(x: potCenterX, y: stoveY + stoveHeight / 2 + 5)
         ring.zPosition = 1.5
         addChild(ring)
 
+        // Inner burner ring
+        let innerRing = SKShapeNode(circleOfRadius: 55)
+        innerRing.fillColor = .clear
+        innerRing.strokeColor = SKColor(red: 0.25, green: 0.18, blue: 0.12, alpha: 0.3)
+        innerRing.lineWidth = 2
+        innerRing.position = CGPoint(x: potCenterX, y: stoveY + stoveHeight / 2 + 5)
+        innerRing.zPosition = 1.5
+        addChild(innerRing)
+
+        // Flame glow disc on stove
+        flameGlow = SKShapeNode(circleOfRadius: 90)
+        flameGlow.fillColor = SKColor(red: 0.90, green: 0.40, blue: 0.05, alpha: 0.0)
+        flameGlow.strokeColor = .clear
+        flameGlow.position = CGPoint(x: potCenterX, y: stoveY + stoveHeight / 2 + 5)
+        flameGlow.zPosition = 2
+        addChild(flameGlow)
+
+        // Pot shadow
+        let potShadow = SKShapeNode(rect: CGRect(x: -potWidth / 2 + 5, y: -potHeight / 2 + 5,
+                                                   width: potWidth, height: potHeight),
+                                     cornerRadius: 30)
+        potShadow.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.25)
+        potShadow.strokeColor = .clear
+        potShadow.position = CGPoint(x: potCenterX + 3, y: potCenterY - 3)
+        potShadow.zPosition = 9.5
+        addChild(potShadow)
+
         let potRect = CGRect(x: -potWidth / 2, y: -potHeight / 2,
                               width: potWidth, height: potHeight)
         potBody = SKShapeNode(rect: potRect, cornerRadius: 30)
-        potBody.fillColor = SKColor(red: 0.20, green: 0.18, blue: 0.16, alpha: 1)
-        potBody.strokeColor = SKColor(red: 0.30, green: 0.27, blue: 0.24, alpha: 1)
+        potBody.fillColor = SKColor(red: 0.18, green: 0.16, blue: 0.14, alpha: 1)
+        potBody.strokeColor = SKColor(red: 0.28, green: 0.25, blue: 0.22, alpha: 1)
         potBody.lineWidth = 3
         potBody.position = CGPoint(x: potCenterX, y: potCenterY)
         potBody.zPosition = 10
         addChild(potBody)
 
+        // Pot body highlight
+        let bodyHighlight = SKShapeNode(rect: CGRect(x: -potWidth / 2 + 15, y: 0,
+                                                       width: potWidth - 30, height: potHeight / 2 - 10),
+                                         cornerRadius: 20)
+        bodyHighlight.fillColor = SKColor(white: 1.0, alpha: 0.02)
+        bodyHighlight.strokeColor = .clear
+        bodyHighlight.zPosition = 0.1
+        potBody.addChild(bodyHighlight)
+
         let rimPath = CGPath(ellipseIn: CGRect(x: -potWidth / 2 - 5, y: -18,
                                                 width: potWidth + 10, height: 36),
                               transform: nil)
         potRim = SKShapeNode(path: rimPath)
-        potRim.fillColor = SKColor(red: 0.28, green: 0.25, blue: 0.22, alpha: 1)
-        potRim.strokeColor = SKColor(red: 0.38, green: 0.34, blue: 0.30, alpha: 1)
+        potRim.fillColor = SKColor(red: 0.26, green: 0.23, blue: 0.20, alpha: 1)
+        potRim.strokeColor = SKColor(red: 0.36, green: 0.32, blue: 0.28, alpha: 1)
         potRim.lineWidth = 2.5
         potRim.position = CGPoint(x: potCenterX, y: potCenterY + potHeight / 2 - 5)
         potRim.zPosition = 15
         addChild(potRim)
 
+        // Rim highlight
+        let rimHighlightPath = CGPath(ellipseIn: CGRect(x: -potWidth / 2 + 10, y: -10,
+                                                          width: potWidth - 20, height: 20),
+                                        transform: nil)
+        let rimHighlight = SKShapeNode(path: rimHighlightPath)
+        rimHighlight.fillColor = .clear
+        rimHighlight.strokeColor = SKColor(white: 1.0, alpha: 0.04)
+        rimHighlight.lineWidth = 1
+        rimHighlight.position = CGPoint(x: potCenterX, y: potCenterY + potHeight / 2 - 3)
+        rimHighlight.zPosition = 15.1
+        addChild(rimHighlight)
+
         for side in [-1.0, 1.0] as [CGFloat] {
             let handle = SKShapeNode(rectOf: CGSize(width: 30, height: 14), cornerRadius: 5)
-            handle.fillColor = SKColor(red: 0.25, green: 0.22, blue: 0.18, alpha: 1)
-            handle.strokeColor = SKColor(red: 0.35, green: 0.30, blue: 0.25, alpha: 1)
+            handle.fillColor = SKColor(red: 0.23, green: 0.20, blue: 0.16, alpha: 1)
+            handle.strokeColor = SKColor(red: 0.33, green: 0.28, blue: 0.23, alpha: 1)
             handle.lineWidth = 1.5
             handle.position = CGPoint(x: potCenterX + side * (potWidth / 2 + 18),
                                       y: potCenterY + potHeight * 0.2)
@@ -287,16 +438,24 @@ class SimmerBrothScene: SKScene {
         addChild(potGlow)
 
         lidNode = SKShapeNode(ellipseOf: CGSize(width: potWidth * 0.85, height: 25))
-        lidNode.fillColor = SKColor(red: 0.30, green: 0.27, blue: 0.24, alpha: 1)
-        lidNode.strokeColor = SKColor(red: 0.35, green: 0.32, blue: 0.28, alpha: 1)
+        lidNode.fillColor = SKColor(red: 0.28, green: 0.25, blue: 0.22, alpha: 1)
+        lidNode.strokeColor = SKColor(red: 0.33, green: 0.30, blue: 0.26, alpha: 1)
         lidNode.lineWidth = 1
         lidNode.position = CGPoint(x: potCenterX, y: potCenterY + potHeight / 2 + 5)
         lidNode.zPosition = potBody.zPosition + 1
         addChild(lidNode)
 
+        // Lid highlight
+        let lidHighlight = SKShapeNode(ellipseOf: CGSize(width: potWidth * 0.5, height: 10))
+        lidHighlight.fillColor = SKColor(white: 1.0, alpha: 0.04)
+        lidHighlight.strokeColor = .clear
+        lidHighlight.position = CGPoint(x: -20, y: 2)
+        lidNode.addChild(lidHighlight)
+
         let knob = SKShapeNode(circleOfRadius: 8)
-        knob.fillColor = SKColor(red: 0.25, green: 0.22, blue: 0.18, alpha: 1)
-        knob.strokeColor = .clear
+        knob.fillColor = SKColor(red: 0.23, green: 0.20, blue: 0.16, alpha: 1)
+        knob.strokeColor = SKColor(white: 0.35, alpha: 0.4)
+        knob.lineWidth = 1
         knob.position = CGPoint(x: 0, y: 5)
         lidNode.addChild(knob)
     }
@@ -313,13 +472,32 @@ class SimmerBrothScene: SKScene {
         brothSurface.fillColor = SKColor(red: 0.72, green: 0.58, blue: 0.22, alpha: 1)
         brothSurface.strokeColor = .clear
         addChild(brothSurface)
+
+        // Broth surface highlight shimmer
+        let highlightRect = CGRect(x: -potWidth / 2 + 30, y: -8,
+                                    width: potWidth * 0.4, height: 16)
+        brothHighlight = SKShapeNode(rect: highlightRect, cornerRadius: 8)
+        brothHighlight.fillColor = SKColor(white: 1.0, alpha: 0.04)
+        brothHighlight.strokeColor = .clear
+        brothHighlight.position = CGPoint(x: potCenterX - 20,
+                                           y: potCenterY + potHeight / 2 - 32)
+        brothHighlight.zPosition = 12.1
+        addChild(brothHighlight)
+
+        // Animate highlight shimmer
+        brothHighlight.run(.repeatForever(.sequence([
+            .moveBy(x: 15, y: 0, duration: 2.0),
+            .moveBy(x: -15, y: 0, duration: 2.0)
+        ])))
     }
 
     private func updateBrothSurface() {
         if isInSimmerZone() {
-            brothSurface.fillColor = SKColor(red: 0.78, green: 0.62, blue: 0.22, alpha: 1)
+            brothSurface.fillColor = SKColor(red: 0.80, green: 0.64, blue: 0.24, alpha: 1)
+            brothHighlight.alpha = 0.06
         } else {
             brothSurface.fillColor = SKColor(red: 0.72, green: 0.55, blue: 0.22, alpha: 1)
+            brothHighlight.alpha = 0.03
         }
     }
 
@@ -345,6 +523,10 @@ class SimmerBrothScene: SKScene {
         let baseHeight: CGFloat = 10 + heatLevel * 80
         let flameBaseY = potCenterY - potHeight / 2 - 5
 
+        // Update flame glow intensity
+        let targetFlameGlowAlpha: CGFloat = heatLevel * 0.08
+        flameGlow.alpha += (targetFlameGlowAlpha - flameGlow.alpha) * 0.1
+
         for (i, flame) in flameNodes.enumerated() {
             let heightVariation = CGFloat.random(in: 0.7...1.3)
             let flameH = baseHeight * heightVariation
@@ -355,42 +537,66 @@ class SimmerBrothScene: SKScene {
 
             let path = CGMutablePath()
             let halfW: CGFloat = 8 + heatLevel * 10 + CGFloat.random(in: -2...2)
+            // Use curved flame shape via quad curve
             path.move(to: CGPoint(x: -halfW, y: 0))
-            path.addLine(to: CGPoint(x: CGFloat.random(in: -3...3), y: flameH))
-            path.addLine(to: CGPoint(x: halfW, y: 0))
+            path.addQuadCurve(to: CGPoint(x: CGFloat.random(in: -3...3), y: flameH),
+                              control: CGPoint(x: -halfW * 0.6 + CGFloat.random(in: -2...2),
+                                               y: flameH * 0.6))
+            path.addQuadCurve(to: CGPoint(x: halfW, y: 0),
+                              control: CGPoint(x: halfW * 0.6 + CGFloat.random(in: -2...2),
+                                               y: flameH * 0.6))
             path.closeSubpath()
             flame.path = path
 
             if heatLevel < 0.3 {
                 flame.fillColor = SKColor(red: 0.3, green: 0.4, blue: 0.8, alpha: 0.7)
-                flame.strokeColor = SKColor(red: 0.4, green: 0.5, blue: 0.9, alpha: 0.5)
+                flame.strokeColor = SKColor(red: 0.4, green: 0.5, blue: 0.9, alpha: 0.4)
             } else if heatLevel < 0.6 {
                 let f = (heatLevel - 0.3) / 0.3
                 flame.fillColor = SKColor(red: 0.9 + 0.1 * f, green: 0.5 + 0.2 * (1 - f),
                                            blue: 0.1, alpha: 0.85)
-                flame.strokeColor = SKColor(red: 1.0, green: 0.6, blue: 0.1, alpha: 0.5)
+                flame.strokeColor = SKColor(red: 1.0, green: 0.6, blue: 0.1, alpha: 0.4)
             } else {
                 let f = min((heatLevel - 0.6) / 0.4, 1.0)
                 flame.fillColor = SKColor(red: 1.0, green: 0.5 - 0.3 * f, blue: 0.1, alpha: 0.9)
-                flame.strokeColor = SKColor(red: 1.0, green: 0.3 - 0.2 * f, blue: 0.05, alpha: 0.6)
+                flame.strokeColor = SKColor(red: 1.0, green: 0.3 - 0.2 * f, blue: 0.05, alpha: 0.5)
             }
             flame.lineWidth = 1
-            flame.glowWidth = heatLevel * 3
+            flame.glowWidth = heatLevel * 4
 
             flame.removeAllChildren()
-            if flameH > 30 {
+            if flameH > 25 {
+                // Inner bright core
                 let innerPath = CGMutablePath()
-                let innerHalfW = halfW * 0.4
-                let innerH = flameH * 0.6
+                let innerHalfW = halfW * 0.35
+                let innerH = flameH * 0.55
                 innerPath.move(to: CGPoint(x: -innerHalfW, y: 2))
-                innerPath.addLine(to: CGPoint(x: CGFloat.random(in: -1...1), y: innerH))
-                innerPath.addLine(to: CGPoint(x: innerHalfW, y: 2))
+                innerPath.addQuadCurve(to: CGPoint(x: CGFloat.random(in: -1...1), y: innerH),
+                                       control: CGPoint(x: -innerHalfW * 0.5, y: innerH * 0.5))
+                innerPath.addQuadCurve(to: CGPoint(x: innerHalfW, y: 2),
+                                       control: CGPoint(x: innerHalfW * 0.5, y: innerH * 0.5))
                 innerPath.closeSubpath()
                 let innerFlame = SKShapeNode(path: innerPath)
-                innerFlame.fillColor = SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 0.7)
+                innerFlame.fillColor = SKColor(red: 1.0, green: 0.88, blue: 0.35, alpha: 0.7)
                 innerFlame.strokeColor = .clear
                 innerFlame.zPosition = 0.1
                 flame.addChild(innerFlame)
+
+                // Tiny white-hot core for intense flames
+                if flameH > 50 {
+                    let coreH = flameH * 0.25
+                    let coreHalfW = halfW * 0.15
+                    let corePath = CGMutablePath()
+                    corePath.move(to: CGPoint(x: -coreHalfW, y: 3))
+                    corePath.addLine(to: CGPoint(x: 0, y: coreH))
+                    corePath.addLine(to: CGPoint(x: coreHalfW, y: 3))
+                    corePath.closeSubpath()
+                    let core = SKShapeNode(path: corePath)
+                    core.fillColor = SKColor(red: 1.0, green: 0.95, blue: 0.8, alpha: 0.5)
+                    core.strokeColor = .clear
+                    core.zPosition = 0.2
+                    flame.addChild(core)
+                }
             }
         }
     }
@@ -423,9 +629,9 @@ class SimmerBrothScene: SKScene {
     private func updateBubbleEmitter() {
         let inZone = isInSimmerZone()
         if inZone {
-            bubbleEmitter.particleBirthRate = 8
-            bubbleEmitter.particleScale = 0.25
-            bubbleEmitter.particleSpeed = 18
+            bubbleEmitter.particleBirthRate = 10
+            bubbleEmitter.particleScale = 0.28
+            bubbleEmitter.particleSpeed = 20
         } else {
             bubbleEmitter.particleBirthRate = 3
             bubbleEmitter.particleScale = 0.18
@@ -439,18 +645,18 @@ class SimmerBrothScene: SKScene {
         steamEmitter = SKEmitterNode()
         steamEmitter.particleTexture = createCircleTexture(radius: 16)
         steamEmitter.particleBirthRate = 0
-        steamEmitter.particleLifetime = 3.0
+        steamEmitter.particleLifetime = 3.5
         steamEmitter.particleLifetimeRange = 1.0
         steamEmitter.particleSpeed = 25
         steamEmitter.particleSpeedRange = 10
         steamEmitter.emissionAngle = .pi / 2
         steamEmitter.emissionAngleRange = .pi / 5
-        steamEmitter.particleScale = 0.2
+        steamEmitter.particleScale = 0.18
         steamEmitter.particleScaleSpeed = 0.15
         steamEmitter.particleScaleRange = 0.1
-        steamEmitter.particleAlpha = 0.15
-        steamEmitter.particleAlphaSpeed = -0.05
-        steamEmitter.particleColor = .white
+        steamEmitter.particleAlpha = 0.12
+        steamEmitter.particleAlphaSpeed = -0.035
+        steamEmitter.particleColor = SKColor(red: 0.95, green: 0.92, blue: 0.85, alpha: 1)
         steamEmitter.particleColorBlendFactor = 1.0
         steamEmitter.particlePositionRange = CGVector(dx: potWidth * 0.5, dy: 5)
         steamEmitter.xAcceleration = 5
@@ -461,33 +667,77 @@ class SimmerBrothScene: SKScene {
 
     private func updateSteamEmitter() {
         if isInSimmerZone() {
-            steamEmitter.particleBirthRate = 4
-            steamEmitter.particleAlpha = 0.12
-            steamEmitter.particleSpeed = 22
+            steamEmitter.particleBirthRate = 5
+            steamEmitter.particleAlpha = 0.14
+            steamEmitter.particleSpeed = 24
         } else {
             steamEmitter.particleBirthRate = 2
-            steamEmitter.particleAlpha = 0.08
+            steamEmitter.particleAlpha = 0.07
             steamEmitter.particleSpeed = 15
         }
+    }
+
+    // MARK: - Ambient Particles
+
+    private func buildAmbientParticles() {
+        ambientEmitter = SKEmitterNode()
+        ambientEmitter.particleTexture = createCircleTexture(radius: 4)
+        ambientEmitter.particleBirthRate = 1.0
+        ambientEmitter.particleLifetime = 5.0
+        ambientEmitter.particleLifetimeRange = 2.0
+        ambientEmitter.particleSpeed = 5
+        ambientEmitter.particleSpeedRange = 3
+        ambientEmitter.emissionAngle = .pi / 2
+        ambientEmitter.emissionAngleRange = .pi
+        ambientEmitter.particleScale = 0.06
+        ambientEmitter.particleScaleSpeed = 0.01
+        ambientEmitter.particleAlpha = 0.05
+        ambientEmitter.particleAlphaSpeed = -0.01
+        ambientEmitter.particleColor = SKColor(red: 1.0, green: 0.80, blue: 0.4, alpha: 1)
+        ambientEmitter.particleColorBlendFactor = 1.0
+        ambientEmitter.particlePositionRange = CGVector(dx: size.width * 0.6, dy: size.height * 0.3)
+        ambientEmitter.position = CGPoint(x: potCenterX, y: potCenterY + 50)
+        ambientEmitter.zPosition = 0.5
+        addChild(ambientEmitter)
     }
 
     // MARK: - HUD
 
     private func buildHUD() {
+        // HUD backdrop
+        let hudBG = SKShapeNode(rectOf: CGSize(width: size.width - 160, height: 40), cornerRadius: 10)
+        hudBG.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        hudBG.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.25)
+        hudBG.strokeColor = SKColor(white: 0.2, alpha: 0.2)
+        hudBG.lineWidth = 1
+        hudBG.zPosition = 99
+        addChild(hudBG)
+
         timerLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
-        timerLabel.text = "Time: 25"
+        timerLabel.text = "Time: 35"
         timerLabel.fontSize = 28
-        timerLabel.fontColor = .white
+        timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
         timerLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
         timerLabel.horizontalAlignmentMode = .center
         timerLabel.verticalAlignmentMode = .center
         timerLabel.zPosition = 100
         addChild(timerLabel)
 
+        // Zone percentage label
+        zonePercentLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        zonePercentLabel.text = "0%"
+        zonePercentLabel.fontSize = 22
+        zonePercentLabel.fontColor = SKColor(red: 0.5, green: 0.9, blue: 0.5, alpha: 0.8)
+        zonePercentLabel.position = CGPoint(x: size.width - 120, y: size.height - 100)
+        zonePercentLabel.horizontalAlignmentMode = .center
+        zonePercentLabel.verticalAlignmentMode = .center
+        zonePercentLabel.zPosition = 100
+        addChild(zonePercentLabel)
+
         instructionLabel = SKLabelNode(fontNamed: "SFProRounded-Medium")
-        instructionLabel.text = "Tap to rise, release to fall — keep in the green!"
+        instructionLabel.text = "Tap to rise, release to fall -- keep in the green!"
         instructionLabel.fontSize = 18
-        instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.7)
+        instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)
         instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 130)
         instructionLabel.horizontalAlignmentMode = .center
         instructionLabel.verticalAlignmentMode = .center
@@ -509,9 +759,12 @@ class SimmerBrothScene: SKScene {
                                             green: CGFloat(remaining / 5.0),
                                             blue: CGFloat(remaining / 5.0), alpha: 1.0)
         } else {
-            timerLabel.fontColor = .white
+            timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
         }
 
+        // Update zone percentage
+        let percentage = elapsedTime > 0 ? Int((timeInZone / elapsedTime) * 100) : 0
+        zonePercentLabel.text = "\(percentage)%"
     }
 
     // MARK: - Texture Helpers
@@ -626,15 +879,21 @@ class SimmerBrothScene: SKScene {
             if !wasInSimmerZone {
                 AudioManager.shared.playSFX("success-chime")
 
-                let simmerLabel = SKLabelNode(text: "Simmering!")
-                simmerLabel.fontName = "AvenirNext-Bold"
-                simmerLabel.fontSize = 22
-                simmerLabel.fontColor = SKColor(red: 0.3, green: 0.85, blue: 0.3, alpha: 1.0)
+                let simmerLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+                simmerLabel.text = "Simmering!"
+                simmerLabel.fontSize = 24
+                simmerLabel.fontColor = SKColor(red: 0.35, green: 0.90, blue: 0.40, alpha: 1.0)
                 simmerLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 50)
                 simmerLabel.zPosition = 100
+                simmerLabel.setScale(0.5)
+                simmerLabel.alpha = 0
                 addChild(simmerLabel)
                 simmerLabel.run(.sequence([
-                    .group([.moveBy(x: 0, y: 40, duration: 1.0), .fadeOut(withDuration: 1.0)]),
+                    .group([
+                        .scale(to: 1.0, duration: 0.15),
+                        .fadeAlpha(to: 1.0, duration: 0.15)
+                    ]),
+                    .group([.moveBy(x: 0, y: 40, duration: 0.8), .fadeOut(withDuration: 0.8)]),
                     .removeFromParent()
                 ]))
             }
@@ -692,15 +951,15 @@ class SimmerBrothScene: SKScene {
             stars = 1
         }
 
-        let timesUpLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        let timesUpLabel = SKLabelNode(fontNamed: "SFProRounded-Heavy")
         timesUpLabel.text = "Time's Up!"
-        timesUpLabel.fontSize = 44
-        timesUpLabel.fontColor = .white
+        timesUpLabel.fontSize = 46
+        timesUpLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.8, alpha: 1)
         timesUpLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 60)
         timesUpLabel.horizontalAlignmentMode = .center
         timesUpLabel.verticalAlignmentMode = .center
         timesUpLabel.zPosition = 200
-        timesUpLabel.setScale(0.5)
+        timesUpLabel.setScale(0.3)
         timesUpLabel.alpha = 0
         addChild(timesUpLabel)
 
@@ -708,9 +967,9 @@ class SimmerBrothScene: SKScene {
         scoreLabel.text = "In Zone: \(score)%"
         scoreLabel.fontSize = 30
         scoreLabel.fontColor = stars >= 3
-            ? SKColor(red: 0.3, green: 1.0, blue: 0.4, alpha: 1.0)
+            ? SKColor(red: 0.35, green: 1.0, blue: 0.45, alpha: 1.0)
             : stars >= 2
-            ? SKColor(red: 0.95, green: 0.85, blue: 0.3, alpha: 1.0)
+            ? SKColor(red: 0.95, green: 0.88, blue: 0.35, alpha: 1.0)
             : SKColor(red: 1.0, green: 0.5, blue: 0.4, alpha: 1.0)
         scoreLabel.position = CGPoint(x: size.width / 2, y: size.height / 2 + 15)
         scoreLabel.horizontalAlignmentMode = .center
@@ -719,11 +978,13 @@ class SimmerBrothScene: SKScene {
         scoreLabel.alpha = 0
         addChild(scoreLabel)
 
-        let showLabel = SKAction.group([
-            SKAction.scale(to: 1.0, duration: 0.3),
-            SKAction.fadeIn(withDuration: 0.3)
+        let showLabel = SKAction.sequence([
+            SKAction.group([
+                SKAction.scale(to: 1.1, duration: 0.25),
+                SKAction.fadeIn(withDuration: 0.25)
+            ]),
+            SKAction.scale(to: 1.0, duration: 0.08)
         ])
-        showLabel.timingMode = .easeOut
 
         timesUpLabel.run(showLabel)
         scoreLabel.run(SKAction.sequence([

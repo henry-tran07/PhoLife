@@ -20,15 +20,18 @@ struct MinigameContainerView: View {
     @State private var phase: MinigamePhase = .intro
     @State private var lastScore: Int = 0
     @State private var lastStars: Int = 0
+    @State private var sceneBlur: CGFloat = 0
 
     // MARK: - Body
 
     var body: some View {
         ZStack {
-            // Layer 1: SpriteKit scene
+            // Layer 1: SpriteKit scene with dynamic blur
             SpriteView(scene: makeScene())
                 .ignoresSafeArea()
                 .id(gameState.currentMinigameIndex)
+                .blur(radius: sceneBlur)
+                .animation(.easeInOut(duration: 0.4), value: sceneBlur)
 
             // Layer 2: Progress bar + skip button at top
             VStack {
@@ -41,7 +44,7 @@ struct MinigameContainerView: View {
                         Button {
                             completionHandler()(50, 1)
                         } label: {
-                            Text("Skip ▸")
+                            Text("Skip \u{25B8}")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(.white.opacity(0.7))
                                 .padding(.horizontal, 12)
@@ -61,15 +64,21 @@ struct MinigameContainerView: View {
                 MinigameIntroCard(
                     minigameIndex: gameState.currentMinigameIndex,
                     onStart: {
-                        withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.82)) {
                             phase = .playing
                         }
                     }
                 )
                 .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .scale(scale: 0.9)),
-                    removal: .move(edge: .top).combined(with: .opacity).combined(with: .scale(scale: 0.8))
+                    insertion: .opacity
+                        .combined(with: .scale(scale: 0.92))
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8)),
+                    removal: .opacity
+                        .combined(with: .scale(scale: 0.85))
+                        .combined(with: .offset(y: -30))
+                        .animation(.easeIn(duration: 0.35))
                 ))
+                .zIndex(2)
             }
 
             // Layer 4: Score reveal card
@@ -85,26 +94,40 @@ struct MinigameContainerView: View {
                             score: lastScore
                         )
                         gameState.completeMinigame(result: result)
-                        withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.82)) {
                             phase = .intro
                         }
                     }
                 )
                 .transition(.asymmetric(
-                    insertion: .move(edge: .bottom).combined(with: .opacity),
-                    removal: .opacity.combined(with: .scale(scale: 0.95))
+                    insertion: .opacity
+                        .combined(with: .scale(scale: 0.9))
+                        .combined(with: .offset(y: 40))
+                        .animation(.spring(response: 0.55, dampingFraction: 0.78)),
+                    removal: .opacity
+                        .combined(with: .scale(scale: 0.92))
+                        .animation(.easeIn(duration: 0.3))
                 ))
+                .zIndex(3)
             }
         }
         .onChange(of: phase) { _, newPhase in
+            // Update scene blur based on phase (blur when cards overlay)
             switch newPhase {
-            case .scoreReveal:
-                AudioManager.shared.playSFX("star-reveal")
-            case .playing:
-                AudioManager.shared.playAmbient("kitchen-ambient")
             case .intro:
+                sceneBlur = 3
                 AudioManager.shared.stopAmbient()
+            case .playing:
+                sceneBlur = 0
+                AudioManager.shared.playAmbient("kitchen-ambient")
+            case .scoreReveal:
+                sceneBlur = 4
+                AudioManager.shared.playSFX("star-reveal")
             }
+        }
+        .onAppear {
+            // Start with blur since intro card is showing
+            sceneBlur = 3
         }
     }
 
@@ -159,7 +182,7 @@ struct MinigameContainerView: View {
         return { (score: Int, stars: Int) in
             self.lastScore = score
             self.lastStars = stars
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.82)) {
                 self.phase = .scoreReveal
             }
         }
