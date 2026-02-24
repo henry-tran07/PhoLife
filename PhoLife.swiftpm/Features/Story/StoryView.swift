@@ -44,6 +44,7 @@ struct StoryView: View {
                             .padding(.vertical, 10)
                             .glassContainer()
                     }
+                    .accessibilityLabel("Skip to cooking minigames")
                     .padding(.top, 16)
                     .padding(.trailing, 24)
                 }
@@ -68,6 +69,7 @@ struct StoryView: View {
                             .padding(.vertical, 18)
                             .background(warmAmber, in: Capsule())
                     }
+                    .accessibilityLabel("Start cooking minigames")
                     .padding(.bottom, 48)
                 } else {
                     // Page indicator dots

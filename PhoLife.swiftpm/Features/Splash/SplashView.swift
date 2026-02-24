@@ -24,13 +24,31 @@ struct SplashView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
-                // Bowl image
+                // Bowl image with steam effect
                 Image("splash-bowl")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 280, height: 280)
                     .scaleEffect(bowlVisible ? 1.05 : 1.0)
                     .opacity(bowlVisible ? 1 : 0)
+                    .accessibilityLabel("A beautiful bowl of Vietnamese pho")
+                    .overlay(alignment: .top) {
+                        // Steam effect — overlaid circles with blur that drift upward
+                        ZStack {
+                            ForEach(0..<3, id: \.self) { i in
+                                Circle()
+                                    .fill(.white.opacity(0.15))
+                                    .frame(width: CGFloat(30 + i * 15), height: CGFloat(30 + i * 15))
+                                    .blur(radius: 15)
+                                    .offset(
+                                        x: CGFloat([-20, 5, 20][i]),
+                                        y: bowlVisible ? CGFloat(-80 - i * 30) : -20
+                                    )
+                                    .opacity(bowlVisible ? 0 : 0.6)
+                            }
+                        }
+                        .allowsHitTesting(false)
+                    }
 
                 // Title
                 Text("PhoLife")

@@ -53,6 +53,7 @@ struct MinigameScoreCard: View {
                         .padding(.vertical, 14)
                         .background(warmAmber, in: Capsule())
                 }
+                .accessibilityLabel("Continue to next minigame")
                 .padding(.top, 8)
             }
             .padding(32)

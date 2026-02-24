@@ -13,6 +13,8 @@ struct CompletionView: View {
     private let cream = Color(red: 1.0, green: 248 / 255, blue: 220 / 255)             // #FFF8DC
 
     @State private var bowlVisible = false
+    @State private var starsVisible = false
+    @State private var titleVisible = false
 
     // MARK: - Computed
 
@@ -44,6 +46,7 @@ struct CompletionView: View {
                     .shadow(color: .orange.opacity(0.4), radius: 30)
                     .scaleEffect(bowlVisible ? 1.0 : 0.5)
                     .opacity(bowlVisible ? 1 : 0)
+                    .accessibilityLabel("Your completed bowl of pho")
 
                 // Title
                 Text("Your Bowl is Ready!")
@@ -52,16 +55,19 @@ struct CompletionView: View {
 
                 // Overall star rating
                 StarRatingView(stars: overallStars, animated: true)
+                    .opacity(starsVisible ? 1 : 0)
 
                 // Total stars count
                 Text("\(gameState.totalStars) / 24 Stars")
                     .font(.system(size: 24, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white)
+                    .opacity(starsVisible ? 1 : 0)
 
                 // Earned title
                 Text(gameState.earnedTitle)
                     .font(.system(size: 20, weight: .regular).italic())
                     .foregroundStyle(cream.opacity(0.85))
+                    .opacity(titleVisible ? 1 : 0)
 
                 Spacer()
 
@@ -83,12 +89,19 @@ struct CompletionView: View {
                         .padding(.vertical, 18)
                         .background(warmAmber, in: Capsule())
                 }
+                .accessibilityLabel("Replay all minigames")
                 .padding(.bottom, 48)
             }
         }
         .onAppear {
             withAnimation(.spring(duration: 0.8, bounce: 0.3)) {
                 bowlVisible = true
+            }
+            withAnimation(.easeIn(duration: 0.6).delay(0.5)) {
+                starsVisible = true
+            }
+            withAnimation(.easeIn(duration: 0.6).delay(0.9)) {
+                titleVisible = true
             }
         }
         .transition(.opacity)

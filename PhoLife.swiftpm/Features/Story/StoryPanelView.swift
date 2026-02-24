@@ -7,6 +7,7 @@ struct StoryPanelView: View {
     // MARK: - State
 
     @State private var textVisible = false
+    @State private var imageScale: CGFloat = 1.0
 
     // MARK: - Constants
 
@@ -21,13 +22,15 @@ struct StoryPanelView: View {
             warmBackground
                 .ignoresSafeArea()
 
-            // Panel image — fills the screen
+            // Panel image — fills the screen with slow zoom
             Image(panel.imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .scaleEffect(imageScale)
                 .clipped()
                 .ignoresSafeArea()
+                .accessibilityLabel("Story illustration: \(panel.title)")
 
             // Text overlay
             VStack {
@@ -61,8 +64,12 @@ struct StoryPanelView: View {
         }
         .onAppear {
             textVisible = false
+            imageScale = 1.0
             withAnimation(.easeIn(duration: 0.8)) {
                 textVisible = true
+            }
+            withAnimation(.easeInOut(duration: 8.0)) {
+                imageScale = 1.08
             }
         }
     }

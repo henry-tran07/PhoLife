@@ -47,6 +47,7 @@ struct ProgressBarView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .glassContainer()
+        .accessibilityLabel("Minigame progress: step \(currentStep + 1) of 8")
     }
 
     // MARK: - Helpers
