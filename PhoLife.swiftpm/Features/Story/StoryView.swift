@@ -7,7 +7,7 @@ struct StoryView: View {
 
     // MARK: - State
 
-    @State private var currentIndex = 1
+    @State private var currentIndex: Int? = 1
 
     // MARK: - Constants
 
@@ -20,13 +20,23 @@ struct StoryView: View {
     var body: some View {
         ZStack {
             // Paging story content
-            TabView(selection: $currentIndex) {
-                ForEach(panels) { panel in
-                    StoryPanelView(panel: panel)
-                        .tag(panel.id)
+            ScrollView(.horizontal) {
+                LazyHStack(spacing: 0) {
+                    ForEach(panels) { panel in
+                        StoryPanelView(panel: panel)
+                            .containerRelativeFrame(.horizontal)
+                            .scrollTransition(.animated(.easeInOut(duration: 0.4))) { content, phase in
+                                content
+                                    .opacity(phase.isIdentity ? 1 : 0.6)
+                                    .scaleEffect(phase.isIdentity ? 1 : 0.95)
+                            }
+                    }
                 }
+                .scrollTargetLayout()
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
+            .scrollTargetBehavior(.paging)
+            .scrollPosition(id: $currentIndex)
+            .scrollIndicators(.hidden)
             .ignoresSafeArea()
 
             // Top-right skip button — always visible
@@ -54,7 +64,7 @@ struct StoryView: View {
             VStack {
                 Spacer()
 
-                if currentIndex == lastPanelID {
+                if currentIndex == lastPanelID as Int? {
                     // Final panel — show "Let's Cook" CTA
                     Button {
                         HapticManager.shared.heavy()
@@ -74,7 +84,7 @@ struct StoryView: View {
                     HStack(spacing: 8) {
                         ForEach(panels) { panel in
                             Circle()
-                                .fill(panel.id == currentIndex ? Color.white : Color.white.opacity(0.3))
+                                .fill(panel.id == currentIndex ? .white : .white.opacity(0.3))
                                 .frame(width: 10, height: 10)
                                 .animation(.easeInOut(duration: 0.25), value: currentIndex)
                         }
