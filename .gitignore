@@ -1,0 +1,6 @@
+.env
+.DS_Store
+*.xcuserdata
+xcuserdata/
+DerivedData/
+.build/
