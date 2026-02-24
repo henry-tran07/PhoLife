@@ -67,6 +67,7 @@ struct MinigameIntroCard: View {
                 // Start button
                 Button {
                     HapticManager.shared.heavy()
+                    AudioManager.shared.playSFX("button-tap")
                     onStart()
                 } label: {
                     Text("Start")

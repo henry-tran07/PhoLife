@@ -66,6 +66,7 @@ struct CompletionView: View {
                 // Replay button
                 Button {
                     HapticManager.shared.heavy()
+                    AudioManager.shared.playSFX("button-tap")
                     gameState.resetForReplay()
                 } label: {
                     Text("Cook Another Bowl")

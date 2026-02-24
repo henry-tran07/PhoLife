@@ -43,6 +43,7 @@ struct MinigameScoreCard: View {
                 // Continue button
                 Button {
                     HapticManager.shared.heavy()
+                    AudioManager.shared.playSFX("button-tap")
                     onContinue()
                 } label: {
                     Text("Continue")

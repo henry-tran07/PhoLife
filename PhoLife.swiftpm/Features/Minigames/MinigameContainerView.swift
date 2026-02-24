@@ -72,6 +72,16 @@ struct MinigameContainerView: View {
                 .transition(.opacity.combined(with: .scale(scale: 0.9)))
             }
         }
+        .onChange(of: phase) { _, newPhase in
+            switch newPhase {
+            case .scoreReveal:
+                AudioManager.shared.playSFX("star-reveal")
+            case .playing:
+                AudioManager.shared.playAmbient("kitchen-ambient")
+            case .intro:
+                AudioManager.shared.stopAmbient()
+            }
+        }
     }
 
     // MARK: - Scene Factory

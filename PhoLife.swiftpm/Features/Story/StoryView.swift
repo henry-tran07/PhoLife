@@ -34,6 +34,7 @@ struct StoryView: View {
                 HStack {
                     Spacer()
                     Button {
+                        AudioManager.shared.playSFX("button-tap")
                         onSkip()
                     } label: {
                         Text("Skip to Cook ▸")
@@ -57,6 +58,7 @@ struct StoryView: View {
                     // Final panel — show "Let's Cook" CTA
                     Button {
                         HapticManager.shared.heavy()
+                        AudioManager.shared.playSFX("button-tap")
                         onComplete()
                     } label: {
                         Text("Let's Cook")
