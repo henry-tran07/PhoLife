@@ -6,7 +6,8 @@ import AppleProductTypes
 let package = Package(
     name: "PhoLife",
     platforms: [
-        .iOS("26.0")
+        .iOS("17.0"),
+        .macOS("14.0")
     ],
     products: [
         .iOSApplication(
@@ -19,6 +20,7 @@ let package = Package(
             appIcon: .asset("AppIcon"),
             accentColor: .presetColor(.orange),
             supportedDeviceFamilies: [
+                .phone,
                 .pad,
                 .mac
             ],
