@@ -39,20 +39,20 @@ struct MinigameContainerView: View {
                     Spacer()
                     ProgressBarView(currentStep: gameState.currentMinigameIndex)
                     Spacer()
-                    // Debug: skip minigame
-                    if phase == .playing {
-                        Button {
-                            completionHandler()(50, 1)
-                        } label: {
-                            Text("Skip \u{25B8}")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.7))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(.ultraThinMaterial, in: Capsule())
-                        }
-                        .padding(.trailing, 16)
-                    }
+                    // Debug: skip minigame — hidden for now
+//                    if phase == .playing {
+//                        Button {
+//                            completionHandler()(50, 1)
+//                        } label: {
+//                            Text("Skip ▸")
+//                                .font(.system(size: 13, weight: .medium))
+//                                .foregroundStyle(.white.opacity(0.7))
+//                                .padding(.horizontal, 12)
+//                                .padding(.vertical, 6)
+//                                .background(.ultraThinMaterial, in: Capsule())
+//                        }
+//                        .padding(.trailing, 16)
+//                    }
                 }
                 .padding(.top, 16)
                 Spacer()
