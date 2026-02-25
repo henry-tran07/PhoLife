@@ -18,19 +18,20 @@ let package = Package(
             name: "PhoLife",
             targets: ["AppModule"],
             bundleIdentifier: "com.henrytran.PhoLife",
+            teamIdentifier: "YLL2K7Q88J",
             displayVersion: "1.0",
             bundleVersion: "1",
             appIcon: .asset("AppIcon"),
             accentColor: .presetColor(.orange),
             supportedDeviceFamilies: [
-                .phone,
                 .pad,
                 .mac
             ],
             supportedInterfaceOrientations: [
                 .landscapeRight,
                 .landscapeLeft
-            ]
+            ],
+            appCategory: .education
         )
     ],
     targets: [
@@ -42,5 +43,6 @@ let package = Package(
                 .process("Resources/Data")
             ]
         )
-    ]
+    ],
+    swiftLanguageVersions: [.version("6")]
 )
