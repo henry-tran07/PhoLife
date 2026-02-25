@@ -163,14 +163,9 @@ struct StoryPanelView: View {
 
 private extension View {
 
-    /// Applies Liquid Glass with a 24-pt corner radius on iOS 26+,
-    /// falling back to ultra-thin material on earlier versions.
+    /// Applies frosted glass styling with a 24-pt corner radius.
     @ViewBuilder
     func glassEffect24() -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassEffect(.regular, in: .rect(cornerRadius: 24))
-        } else {
-            self.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
-        }
+        self.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
     }
 }
