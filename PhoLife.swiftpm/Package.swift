@@ -19,7 +19,8 @@ let package = Package(
             appIcon: .asset("AppIcon"),
             accentColor: .presetColor(.orange),
             supportedDeviceFamilies: [
-                .pad
+                .pad,
+                .mac
             ],
             supportedInterfaceOrientations: [
                 .landscapeRight,
