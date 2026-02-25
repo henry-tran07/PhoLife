@@ -3,7 +3,7 @@
 
 **Deadline:** February 28, 2026, 11:59 PM PST
 **Current State:** Zero code. PRD complete. Git repo initialized.
-**Prior Art:** Pho-ever project (same tech stack, key learnings below)
+**Prior Art:** Previous project (same tech stack, key learnings below)
 
 ---
 
@@ -57,7 +57,7 @@ No NavigationStack. Linear flow with animated ZStack transitions.
 - Each minigame is an `SKScene` subclass displayed via `SpriteView`
 - Scene communicates completion via closure: `var onComplete: ((Int, Int) -> Void)?`
 - `MinigameContainerView` manages lifecycle: intro card → playing → score card → advance
-- **CRITICAL:** All non-interactive SwiftUI overlays on SpriteView MUST have `.allowsHitTesting(false)` (learned from Pho-ever — without this, touches never reach SpriteKit)
+- **CRITICAL:** All non-interactive SwiftUI overlays on SpriteView MUST have `.allowsHitTesting(false)` (without this, touches never reach SpriteKit)
 - Scene size: `1194 × 834` (iPad Pro 11-inch logical), `scaleMode = .aspectFill`
 - Only ONE SpriteView instance at a time
 - Use `.id(currentMinigameIndex)` to control SpriteView recreation when switching games
@@ -331,7 +331,7 @@ Key: `path: "."` compiles all Swift files. `Assets.xcassets` auto-processed. Sou
 
 | Risk | Mitigation |
 |---|---|
-| SwiftUI overlay blocks SpriteKit touches | `.allowsHitTesting(false)` on all non-interactive overlays (learned from Pho-ever) |
+| SwiftUI overlay blocks SpriteKit touches | `.allowsHitTesting(false)` on all non-interactive overlays |
 | SwiftUI state change re-renders SpriteView | `.id(currentMinigameIndex)` to control recreation; closures not reactive bindings |
 | Exceeds 25 MB | Conservative budget (est. 9.6 MB). Compress images. AAC audio at low bitrate. Check ZIP after every asset batch. |
 | SpriteKit perf in Simulator | Max 50-100 particles per emitter. Load story images lazily. |
