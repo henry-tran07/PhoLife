@@ -28,6 +28,8 @@ let package = Package(
                 .mac
             ],
             supportedInterfaceOrientations: [
+                .portrait,
+                .portraitUpsideDown,
                 .landscapeRight,
                 .landscapeLeft
             ]
