@@ -28,8 +28,10 @@ let package = Package(
                 .mac
             ],
             supportedInterfaceOrientations: [
+                .portrait,
                 .landscapeRight,
-                .landscapeLeft
+                .landscapeLeft,
+                .portraitUpsideDown
             ],
             appCategory: .education
         )

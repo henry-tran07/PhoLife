@@ -709,8 +709,6 @@ class AssembleBowlScene: SKScene {
         let inset: CGFloat = 30
         let layerWidth = bowlWidth - inset * 2
         let layerHeight: CGFloat = 32
-        let ingredient = ingredients[ingredientIndex]
-
         // Vertical position inside the bowl: stack layers from bottom
         // Bowl interior ellipse vertical range approx -bowlHeight/2+16 to bowlHeight/2-16
         let baseY: CGFloat = -bowlHeight * 0.30
@@ -1004,7 +1002,7 @@ class AssembleBowlScene: SKScene {
         // Animated stream extension
         let streamDuration: TimeInterval = 0.8
         let streamExtend = SKAction.customAction(withDuration: streamDuration) { [weak streamNode] _, elapsed in
-            guard let stream = streamNode as? SKShapeNode else { return }
+            guard let stream = streamNode else { return }
             let progress = min(elapsed / streamDuration, 1.0)
 
             let currentEndY = streamOrigin.y + (streamTarget.y - streamOrigin.y) * progress
@@ -1088,12 +1086,13 @@ class AssembleBowlScene: SKScene {
 
         let fillDuration: TimeInterval = 1.5
 
-        let fillAnimation = SKAction.customAction(withDuration: fillDuration) { [weak brothFillNode, weak self] _, elapsed in
-            guard let fill = brothFillNode as? SKShapeNode, let self = self else { return }
+        let capturedBowlHeight = bowlHeight
+        let fillAnimation = SKAction.customAction(withDuration: fillDuration) { [weak brothFillNode] _, elapsed in
+            guard let fill = brothFillNode else { return }
             let progress = min(elapsed / fillDuration, 1.0)
 
             let currentHeight = fillMaxHeight * progress
-            let bottomY = -self.bowlHeight * 0.35
+            let bottomY = -capturedBowlHeight * 0.35
 
             // Elliptical shape for the broth surface
             let path = CGMutablePath()

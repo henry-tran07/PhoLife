@@ -22,6 +22,7 @@ struct SplashView: View {
     @State private var ambientGlow = false
     @State private var exitTransition = false
     @State private var bowlPulse = false
+    @State private var landscapeHintVisible = false
     @State private var ingredientArrived: Set<Int> = []
     @State private var ingredientStarted: Set<Int> = []
 
@@ -68,6 +69,14 @@ struct SplashView: View {
                 Spacer()
             }
             .scaleEffect(exitTransition ? 1.08 : 1.0)
+            .opacity(exitTransition ? 0 : 1)
+
+            // Landscape hint — positioned below the convergence center
+            VStack {
+                Spacer()
+                landscapeHintSection
+                    .padding(.bottom, 48)
+            }
             .opacity(exitTransition ? 0 : 1)
         }
         .transition(.opacity)
@@ -281,6 +290,21 @@ struct SplashView: View {
         }
     }
 
+    // MARK: - Landscape Hint
+
+    private var landscapeHintSection: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "ipad.landscape")
+                .font(.system(size: 18, weight: .medium))
+            Text("Best in landscape")
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+        }
+        .foregroundStyle(cream.opacity(0.45))
+        .padding(.top, 12)
+        .opacity(landscapeHintVisible ? 1 : 0)
+        .offset(y: landscapeHintVisible ? 0 : 6)
+    }
+
     // MARK: - Animation Sequence
 
     private func runAnimationSequence() async {
@@ -326,6 +350,12 @@ struct SplashView: View {
             subtitleVisible = true
         }
 
+        // 2.5s — landscape hint
+        try? await Task.sleep(for: .seconds(0.5))
+        withAnimation(.easeOut(duration: 0.5)) {
+            landscapeHintVisible = true
+        }
+
         // Stagger ingredient arrivals
         try? await Task.sleep(for: .seconds(0.3))
         for i in 0..<8 {
@@ -343,6 +373,9 @@ struct SplashView: View {
         withAnimation(.spring(duration: 0.3)) {
             bowlPulse = false
         }
+
+        // Hold — let the user appreciate the full composition
+        try? await Task.sleep(for: .seconds(1.5))
 
         // Exit
         try? await Task.sleep(for: .seconds(0.5))
