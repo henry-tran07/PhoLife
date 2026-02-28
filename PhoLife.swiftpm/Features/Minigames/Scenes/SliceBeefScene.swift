@@ -334,7 +334,7 @@ class SliceBeefScene: SKScene {
         hudBG.zPosition = 99
         addChild(hudBG)
 
-        sliceCountLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        sliceCountLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
         sliceCountLabel.text = "Cuts: 0"
         sliceCountLabel.fontSize = 28
         sliceCountLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
@@ -346,7 +346,7 @@ class SliceBeefScene: SKScene {
     }
 
     private func setupInstruction() {
-        let instructionLabel = SKLabelNode(fontNamed: "SFProRounded-Medium")
+        let instructionLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
         instructionLabel.text = "Tap to cut \u{2014} time it near the top for the thinnest slices!"
         instructionLabel.fontSize = 20
         instructionLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 0.65)
@@ -519,7 +519,7 @@ class SliceBeefScene: SKScene {
     // MARK: - Floating Slice Text
 
     private func showFloatingSliceText(at yPosition: CGFloat) {
-        let label = SKLabelNode(fontNamed: "SFProRounded-Heavy")
+        let label = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
         label.text = "+\(slicesMade)"
         label.fontSize = 26
         label.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.40, alpha: 1.0)
@@ -732,7 +732,7 @@ class SliceBeefScene: SKScene {
         // Golden burst particles for completion
         spawnCompletionBurst()
 
-        let doneLabel = SKLabelNode(fontNamed: "SFProRounded-Heavy")
+        let doneLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
         doneLabel.text = "Slicing Complete!"
         doneLabel.fontSize = 44
         doneLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.60, alpha: 1.0)
@@ -745,7 +745,7 @@ class SliceBeefScene: SKScene {
         addChild(doneLabel)
 
         // Score subtitle
-        let scoreLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        let scoreLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
         scoreLabel.text = "\(slicesMade) slices"
         scoreLabel.fontSize = 26
         scoreLabel.fontColor = SKColor(white: 1.0, alpha: 0.7)

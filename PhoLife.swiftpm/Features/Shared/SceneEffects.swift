@@ -114,7 +114,7 @@ extension SKScene {
         color: SKColor = SKColor(red: 1.0, green: 0.88, blue: 0.35, alpha: 1.0),
         fontSize: CGFloat = 26
     ) {
-        let label = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        let label = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
         label.text = text
         label.fontSize = fontSize
         label.fontColor = color

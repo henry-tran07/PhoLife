@@ -41,7 +41,8 @@ let package = Package(
             name: "AppModule",
             path: ".",
             resources: [
-                .process("Resources/Sounds")
+                .process("Resources/Sounds"),
+                .process("Resources/Fonts")
             ]
         )
     ],

@@ -144,7 +144,7 @@ struct MinigameIntroCard: View {
             VStack(spacing: 18) {
                 // Step badge - premium gradient
                 Text("Step \(minigameIndex + 1) of 8")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.custom("SFCompactRounded-Bold", size: 13))
                     .tracking(0.8)
                     .textCase(.uppercase)
                     .foregroundStyle(.white)
@@ -189,7 +189,7 @@ struct MinigameIntroCard: View {
                         .frame(width: 72, height: 72)
 
                     Image(systemName: stepIcons[safe: minigameIndex] ?? "fork.knife")
-                        .font(.system(size: 36, weight: .medium))
+                        .font(.custom("SFCompactRounded-Medium", size: 36))
                         .foregroundStyle(warmAmber)
                         .shadow(color: warmAmber.opacity(0.3), radius: 6)
                 }
@@ -198,7 +198,7 @@ struct MinigameIntroCard: View {
 
                 // Minigame title
                 Text(minigameTitle)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.custom("SFCompactRounded-Bold", size: 28))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [warmAmber, cream],
@@ -217,18 +217,18 @@ struct MinigameIntroCard: View {
 
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Narrator")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .font(.custom("SFCompactRounded-Bold", size: 16))
                             .foregroundStyle(warmAmber)
 
                         Text(typewriterText)
-                            .font(.system(size: 18, weight: .medium))
+                            .font(.custom("SFCompactRounded-Medium", size: 18))
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.leading)
                             .lineSpacing(3)
 
                         if showTapIndicator {
                             Text("\u{25BC}")
-                                .font(.system(size: 14))
+                                .font(.custom("SFCompactRounded-Regular", size: 14))
                                 .foregroundStyle(.white.opacity(0.6))
                                 .modifier(IntroCardPulseModifier())
                                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -256,7 +256,7 @@ struct MinigameIntroCard: View {
                         onStart()
                     } label: {
                         Text("Start")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .font(.custom("SFCompactRounded-Bold", size: 20))
                             .tracking(0.5)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 52)

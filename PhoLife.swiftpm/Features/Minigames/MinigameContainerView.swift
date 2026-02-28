@@ -45,7 +45,7 @@ struct MinigameContainerView: View {
                             completionHandler()(50, 1)
                         } label: {
                             Text("Skip ▸")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.custom("SFCompactRounded-Medium", size: 13))
                                 .foregroundStyle(.white.opacity(0.7))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)

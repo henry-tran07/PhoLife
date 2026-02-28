@@ -199,7 +199,7 @@ struct ProgressBarView: View {
 
             // --- Step icon ---
             Image(systemName: stepIcons[safe: index] ?? "circle")
-                .font(.system(size: isCurrent ? 16 : 13, weight: .semibold, design: .rounded))
+                .font(.custom("SFCompactRounded-Semibold", size: isCurrent ? 16 : 13))
                 .foregroundStyle(
                     isCurrent || isCompleted
                         ? Color.white
@@ -231,7 +231,7 @@ struct ProgressBarView: View {
                 .frame(width: 14, height: 14)
 
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 14, weight: .bold))
+                .font(.custom("SFCompactRounded-Bold", size: 14))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [

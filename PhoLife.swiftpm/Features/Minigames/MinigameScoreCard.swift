@@ -98,7 +98,7 @@ struct MinigameScoreCard: View {
 
                 // Celebration header with gradient
                 Text(celebrationHeader)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.custom("SFCompactRounded-Bold", size: 32))
                     .foregroundStyle(headerGradient)
                     .shadow(color: headerShadowColor, radius: 8, y: 2)
                     .opacity(headerVisible ? 1 : 0)
@@ -108,7 +108,7 @@ struct MinigameScoreCard: View {
                 // Score with count-up and label
                 VStack(spacing: 4) {
                     Text("\(displayedScore)")
-                        .font(.system(size: 52, weight: .bold, design: .rounded))
+                        .font(.custom("SFCompactRounded-Bold", size: 52))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [warmAmber, cream],
@@ -120,7 +120,7 @@ struct MinigameScoreCard: View {
                         .shadow(color: warmAmber.opacity(0.3), radius: 6, y: 2)
 
                     Text("POINTS")
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .font(.custom("SFCompactRounded-Bold", size: 12))
                         .tracking(2.0)
                         .foregroundStyle(warmAmber.opacity(0.5))
                 }
@@ -134,7 +134,7 @@ struct MinigameScoreCard: View {
                     onContinue()
                 } label: {
                     Text("Continue")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .font(.custom("SFCompactRounded-Bold", size: 20))
                         .tracking(0.5)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 52)

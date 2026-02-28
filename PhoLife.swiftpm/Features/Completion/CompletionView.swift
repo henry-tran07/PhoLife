@@ -131,7 +131,7 @@ struct CompletionView: View {
     private var performancePanel: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Your Performance")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.custom("SFCompactRounded-Bold", size: 20))
                 .foregroundStyle(warmAmber)
                 .padding(.bottom, 16)
 
@@ -148,12 +148,12 @@ struct CompletionView: View {
                 .padding(.vertical, 8)
             HStack {
                 Text("Total")
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.custom("SFCompactRounded-Bold", size: 16))
                     .foregroundStyle(cream)
                 Spacer()
                 StarRatingView(stars: overallStars, starSize: 16)
                 Text("\(totalScore)")
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .font(.custom("SFCompactRounded-Bold", size: 16))
                     .foregroundStyle(warmAmber)
                     .frame(width: 40, alignment: .trailing)
             }
@@ -173,13 +173,13 @@ struct CompletionView: View {
                 PhoIngredientIconView(icon: ingredient.icon, size: 22)
             }
             Text(fact?.minigameTitle ?? "Step \(index + 1)")
-                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .font(.custom("SFCompactRounded-Medium", size: 14))
                 .foregroundStyle(cream)
                 .lineLimit(1)
             Spacer()
             StarRatingView(stars: result.stars, starSize: 14)
             Text("\(result.score)")
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.custom("SFCompactRounded-Semibold", size: 14))
                 .foregroundStyle(warmAmber)
                 .frame(width: 32, alignment: .trailing)
         }
@@ -249,13 +249,13 @@ struct CompletionView: View {
     private var titleSection: some View {
         ZStack {
             Text("Your Bowl is Ready!")
-                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .font(.custom("SFCompactRounded-Bold", size: 36))
                 .foregroundStyle(warmAmber.opacity(0.3))
                 .blur(radius: 12)
                 .opacity(titleVisible ? 1 : 0)
 
             Text("Your Bowl is Ready!")
-                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .font(.custom("SFCompactRounded-Bold", size: 36))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [warmAmber, Color(red: 0.95, green: 0.78, blue: 0.5)],
@@ -280,7 +280,7 @@ struct CompletionView: View {
                 .frame(width: earnedTitleVisible ? 50 : 0, height: 2)
 
             Text(gameState.earnedTitle)
-                .font(.system(size: 22, weight: .semibold, design: .rounded))
+                .font(.custom("SFCompactRounded-Semibold", size: 22))
                 .italic()
                 .foregroundStyle(
                     LinearGradient(
@@ -314,7 +314,7 @@ struct CompletionView: View {
                     .blur(radius: 16)
 
                 Text("Cook Another Bowl")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.custom("SFCompactRounded-Bold", size: 22))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 48)
                     .padding(.vertical, 18)
@@ -342,7 +342,7 @@ struct CompletionView: View {
     private var ingredientsPanel: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Bowl Ingredients")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.custom("SFCompactRounded-Bold", size: 20))
                 .foregroundStyle(warmAmber)
                 .padding(.bottom, 16)
 
@@ -367,10 +367,10 @@ struct CompletionView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(ingredient.name)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.custom("SFCompactRounded-Bold", size: 14))
                     .foregroundStyle(cream)
                 Text(ingredient.contribution)
-                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .font(.custom("SFCompactRounded-Regular", size: 12))
                     .foregroundStyle(.white.opacity(0.6))
                     .lineSpacing(2)
             }

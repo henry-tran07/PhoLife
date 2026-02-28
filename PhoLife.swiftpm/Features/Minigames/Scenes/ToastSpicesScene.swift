@@ -286,7 +286,7 @@ class ToastSpicesScene: SKScene {
         addChild(hudBG)
 
         // Score label -- top-left
-        scoreLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        scoreLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
         scoreLabel.text = "Score: 0"
         scoreLabel.fontSize = 28
         scoreLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.45, alpha: 1.0)
@@ -297,7 +297,7 @@ class ToastSpicesScene: SKScene {
         addChild(scoreLabel)
 
         // Timer label -- top-center
-        timerLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        timerLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
         timerLabel.text = "0:40"
         timerLabel.fontSize = 30
         timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1.0)
@@ -521,7 +521,7 @@ class ToastSpicesScene: SKScene {
         circle.addChild(innerHighlight)
 
         // Symbol label with shadow
-        let shadowLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        let shadowLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
         shadowLabel.text = data.symbol
         shadowLabel.fontSize = 22
         shadowLabel.fontColor = SKColor(red: 0, green: 0, blue: 0, alpha: 0.3)
@@ -530,7 +530,7 @@ class ToastSpicesScene: SKScene {
         shadowLabel.position = CGPoint(x: 1, y: -1)
         container.addChild(shadowLabel)
 
-        let label = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        let label = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
         label.text = data.symbol
         label.fontSize = 22
         label.fontColor = .white
@@ -540,7 +540,7 @@ class ToastSpicesScene: SKScene {
         container.addChild(label)
 
         // Name label below for identification
-        let nameLabel = SKLabelNode(fontNamed: "SFProRounded-Medium")
+        let nameLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
         nameLabel.text = data.name
         nameLabel.fontSize = 10
         nameLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)
@@ -713,7 +713,7 @@ class ToastSpicesScene: SKScene {
 
             // Show combo counter when combo >= 2
             if comboCount >= 2 {
-                let comboLabel = SKLabelNode(fontNamed: "SFProRounded-Heavy")
+                let comboLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
                 comboLabel.text = "Combo x\(comboCount)!"
                 comboLabel.fontSize = 34
                 comboLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.35, alpha: 1.0)
@@ -839,7 +839,7 @@ class ToastSpicesScene: SKScene {
         ]))
 
         // X-mark for wrong catch
-        let xMark = SKLabelNode(fontNamed: "SFProRounded-Heavy")
+        let xMark = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
         xMark.text = "X"
         xMark.fontSize = 38
         xMark.fontColor = SKColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0)
@@ -881,7 +881,7 @@ class ToastSpicesScene: SKScene {
     }
 
     private func showFloatingText(_ text: String, color: SKColor, at position: CGPoint) {
-        let label = SKLabelNode(fontNamed: "SFProRounded-Bold")
+        let label = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
         label.text = text
         label.fontSize = 26
         label.fontColor = color
