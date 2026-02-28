@@ -227,6 +227,11 @@ struct StoryPanelView: View {
             }
 
             displayedCharCount = i
+            let charIndex = segment.text.index(segment.text.startIndex, offsetBy: i - 1)
+            let char = segment.text[charIndex]
+            if !char.isWhitespace && !".,!?;:—\u{2014}".contains(char) {
+                AudioManager.shared.playSFX("text-blip-\(Int.random(in: 0...2))")
+            }
             try? await Task.sleep(for: .milliseconds(25))
         }
 

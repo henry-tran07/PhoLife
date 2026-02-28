@@ -63,12 +63,20 @@ final class SoundSynthesizer {
         cachedBuffers["sparkle"] = generateSparkle()
         cachedBuffers["card-flip"] = generateCardFlip()
         cachedBuffers["star-reveal"] = generateStarReveal()
+        cachedBuffers["text-blip-0"] = generateTextBlip(frequency: 380)
+        cachedBuffers["text-blip-1"] = generateTextBlip(frequency: 440)
+        cachedBuffers["text-blip-2"] = generateTextBlip(frequency: 500)
     }
 
     // MARK: - Public API
 
     func hasSound(_ name: String) -> Bool {
         cachedBuffers[name] != nil
+    }
+
+    func playTextBlip() {
+        let variant = Int.random(in: 0...2)
+        play("text-blip-\(variant)", volume: 0.5)
     }
 
     func play(_ name: String, volume: Float = 1.0) {
@@ -280,6 +288,24 @@ final class SoundSynthesizer {
             lowPass += cutoff * (noise - lowPass)
             let envelope = sin(.pi * progress)
             data[i] = lowPass * envelope * 0.5
+        }
+        return buffer
+    }
+
+    /// Short sine blip for dialogue text (~30ms)
+    private func generateTextBlip(frequency: Float) -> AVAudioPCMBuffer {
+        let duration = 0.03
+        let buffer = makeBuffer(duration: duration)
+        let frames = Int(sampleRate * duration)
+        buffer.frameLength = AVAudioFrameCount(frames)
+        let data = buffer.floatChannelData![0]
+
+        for i in 0..<frames {
+            let t = Float(i) / Float(sampleRate)
+            let attack = min(t / 0.002, 1.0)
+            let decay = max(0, 1.0 - t / Float(duration))
+            let envelope = attack * decay
+            data[i] = sin(2 * .pi * frequency * t) * envelope * 0.3
         }
         return buffer
     }
