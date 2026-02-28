@@ -232,7 +232,7 @@ class CleanBonesScene: SKScene {
     private func setupTimerLabel() {
         // HUD backdrop
         let hudBG = SKShapeNode(rectOf: CGSize(width: size.width - 120, height: 40), cornerRadius: 10)
-        hudBG.position = CGPoint(x: size.width / 2, y: size.height - 130)
+        hudBG.position = CGPoint(x: size.width / 2, y: size.height - 160)
         hudBG.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.25)
         hudBG.strokeColor = SKColor(white: 0.2, alpha: 0.2)
         hudBG.lineWidth = 1
@@ -243,7 +243,7 @@ class CleanBonesScene: SKScene {
         timerLabel.text = "Time: 35"
         timerLabel.fontSize = 28
         timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
-        timerLabel.position = CGPoint(x: size.width / 2, y: size.height - 130)
+        timerLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         timerLabel.horizontalAlignmentMode = .center
         timerLabel.verticalAlignmentMode = .center
         timerLabel.zPosition = 100
@@ -255,7 +255,7 @@ class CleanBonesScene: SKScene {
         scoreLabel.text = "Popped: 0"
         scoreLabel.fontSize = 22
         scoreLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.5, alpha: 0.85)
-        scoreLabel.position = CGPoint(x: size.width - 120, y: size.height - 130)
+        scoreLabel.position = CGPoint(x: size.width - 120, y: size.height - 160)
         scoreLabel.horizontalAlignmentMode = .center
         scoreLabel.verticalAlignmentMode = .center
         scoreLabel.zPosition = 100
@@ -266,7 +266,7 @@ class CleanBonesScene: SKScene {
         instructionLabel.text = "Tap the scum bubbles!"
         instructionLabel.fontSize = 20
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.7)
-        instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 165)
+        instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 195)
         instructionLabel.horizontalAlignmentMode = .center
         instructionLabel.verticalAlignmentMode = .center
         instructionLabel.zPosition = 100

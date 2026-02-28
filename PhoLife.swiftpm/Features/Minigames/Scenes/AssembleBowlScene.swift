@@ -407,7 +407,7 @@ class AssembleBowlScene: SKScene {
         title.text = "Build Your Bowl"
         title.fontSize = 34
         title.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
-        title.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        title.position = CGPoint(x: size.width / 2, y: size.height - 160)
         title.horizontalAlignmentMode = .center
         title.verticalAlignmentMode = .center
         title.zPosition = 100
@@ -418,7 +418,7 @@ class AssembleBowlScene: SKScene {
         stepLabel.text = "Step 1/4"
         stepLabel.fontSize = 22
         stepLabel.fontColor = SKColor(white: 1.0, alpha: 0.7)
-        stepLabel.position = CGPoint(x: size.width / 2, y: size.height - 130)
+        stepLabel.position = CGPoint(x: size.width / 2, y: size.height - 190)
         stepLabel.horizontalAlignmentMode = .center
         stepLabel.verticalAlignmentMode = .center
         stepLabel.zPosition = 100

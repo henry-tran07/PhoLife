@@ -706,7 +706,7 @@ class SimmerBrothScene: SKScene {
     private func buildHUD() {
         // HUD backdrop
         let hudBG = SKShapeNode(rectOf: CGSize(width: size.width - 160, height: 40), cornerRadius: 10)
-        hudBG.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        hudBG.position = CGPoint(x: size.width / 2, y: size.height - 160)
         hudBG.fillColor = SKColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.25)
         hudBG.strokeColor = SKColor(white: 0.2, alpha: 0.2)
         hudBG.lineWidth = 1
@@ -717,7 +717,7 @@ class SimmerBrothScene: SKScene {
         timerLabel.text = "Time: 35"
         timerLabel.fontSize = 28
         timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
-        timerLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        timerLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         timerLabel.horizontalAlignmentMode = .center
         timerLabel.verticalAlignmentMode = .center
         timerLabel.zPosition = 100
@@ -728,7 +728,7 @@ class SimmerBrothScene: SKScene {
         zonePercentLabel.text = "0%"
         zonePercentLabel.fontSize = 22
         zonePercentLabel.fontColor = SKColor(red: 0.5, green: 0.9, blue: 0.5, alpha: 0.8)
-        zonePercentLabel.position = CGPoint(x: size.width - 120, y: size.height - 100)
+        zonePercentLabel.position = CGPoint(x: size.width - 120, y: size.height - 160)
         zonePercentLabel.horizontalAlignmentMode = .center
         zonePercentLabel.verticalAlignmentMode = .center
         zonePercentLabel.zPosition = 100
@@ -738,7 +738,7 @@ class SimmerBrothScene: SKScene {
         instructionLabel.text = "Tap to rise, release to fall -- keep in the green!"
         instructionLabel.fontSize = 18
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)
-        instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 130)
+        instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 190)
         instructionLabel.horizontalAlignmentMode = .center
         instructionLabel.verticalAlignmentMode = .center
         instructionLabel.zPosition = 100

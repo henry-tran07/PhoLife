@@ -441,7 +441,7 @@ class CharAromaticsScene: SKScene {
         roundLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
         roundLabel.fontSize = 28
         roundLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1)
-        roundLabel.position = CGPoint(x: size.width * 0.45, y: size.height - 100)
+        roundLabel.position = CGPoint(x: size.width * 0.45, y: size.height - 160)
         roundLabel.horizontalAlignmentMode = .center
         roundLabel.verticalAlignmentMode = .center
         roundLabel.zPosition = 10

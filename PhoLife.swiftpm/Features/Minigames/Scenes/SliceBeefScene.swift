@@ -327,7 +327,7 @@ class SliceBeefScene: SKScene {
     private func setupHUD() {
         // HUD background pill
         let hudBG = SKShapeNode(rectOf: CGSize(width: 180, height: 44), cornerRadius: 22)
-        hudBG.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        hudBG.position = CGPoint(x: size.width / 2, y: size.height - 160)
         hudBG.fillColor = SKColor(red: 0.12, green: 0.08, blue: 0.04, alpha: 0.75)
         hudBG.strokeColor = SKColor(red: 0.45, green: 0.35, blue: 0.20, alpha: 0.5)
         hudBG.lineWidth = 1.5
@@ -338,7 +338,7 @@ class SliceBeefScene: SKScene {
         sliceCountLabel.text = "Cuts: 0"
         sliceCountLabel.fontSize = 28
         sliceCountLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
-        sliceCountLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        sliceCountLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         sliceCountLabel.horizontalAlignmentMode = .center
         sliceCountLabel.verticalAlignmentMode = .center
         sliceCountLabel.zPosition = 100

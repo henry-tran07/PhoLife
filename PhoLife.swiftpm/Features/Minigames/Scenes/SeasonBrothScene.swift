@@ -443,7 +443,7 @@ class SeasonBrothScene: SKScene {
         attemptLabel.text = "Season the Broth"
         attemptLabel.fontSize = 30
         attemptLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
-        attemptLabel.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        attemptLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
         attemptLabel.horizontalAlignmentMode = .center
         attemptLabel.verticalAlignmentMode = .center
         attemptLabel.zPosition = 100
@@ -454,7 +454,7 @@ class SeasonBrothScene: SKScene {
         instructionLabel.text = "Adjust the sliders to find the perfect balance"
         instructionLabel.fontSize = 18
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.5)
-        instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 130)
+        instructionLabel.position = CGPoint(x: size.width / 2, y: size.height - 190)
         instructionLabel.horizontalAlignmentMode = .center
         instructionLabel.verticalAlignmentMode = .center
         instructionLabel.zPosition = 100

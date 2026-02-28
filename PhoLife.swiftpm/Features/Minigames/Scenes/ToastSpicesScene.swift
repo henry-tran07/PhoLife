@@ -274,7 +274,7 @@ class ToastSpicesScene: SKScene {
     // MARK: - HUD
 
     private func setupHUD() {
-        let hudY = size.height - 100
+        let hudY = size.height - 160
 
         // HUD backdrop strip
         let hudBG = SKShapeNode(rectOf: CGSize(width: size.width - 100, height: 44), cornerRadius: 12)

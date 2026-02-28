@@ -150,7 +150,7 @@ class TopItOffScene: SKScene {
         title.text = "Top It Off"
         title.fontSize = 34
         title.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
-        title.position = CGPoint(x: size.width / 2, y: size.height - 100)
+        title.position = CGPoint(x: size.width / 2, y: size.height - 160)
         title.horizontalAlignmentMode = .center
         title.verticalAlignmentMode = .center
         title.zPosition = 100
@@ -161,7 +161,7 @@ class TopItOffScene: SKScene {
         subtitle.text = "Match each topping to its role"
         subtitle.fontSize = 18
         subtitle.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 0.45)
-        subtitle.position = CGPoint(x: size.width / 2, y: size.height - 130)
+        subtitle.position = CGPoint(x: size.width / 2, y: size.height - 190)
         subtitle.horizontalAlignmentMode = .center
         subtitle.verticalAlignmentMode = .center
         subtitle.zPosition = 100
