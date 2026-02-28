@@ -54,9 +54,9 @@ struct ContentView: View {
             case .splash, .story:
                 AudioManager.shared.playMusic("background-music")
             case .minigames:
-                AudioManager.shared.playMusic("background-music")
+                AudioManager.shared.playMusic("minigame-music")
             case .completion:
-                AudioManager.shared.playMusic("background-music")
+                break // keep minigame music playing
             }
         }
     }

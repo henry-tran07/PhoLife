@@ -41,26 +41,26 @@ struct StoryView: View {
             .scrollIndicators(.hidden)
             .ignoresSafeArea()
 
-            // Top-right skip button — hidden for now
-//            VStack {
-//                HStack {
-//                    Spacer()
-//                    Button {
-//                        onSkip()
-//                    } label: {
-//                        Text("Skip to Cook ▸")
-//                            .font(.system(size: 14, weight: .medium))
-//                            .foregroundStyle(.white.opacity(0.85))
-//                            .padding(.horizontal, 16)
-//                            .padding(.vertical, 10)
-//                            .glassContainer()
-//                    }
-//                    .accessibilityLabel("Skip to cooking minigames")
-//                    .padding(.top, 16)
-//                    .padding(.trailing, 24)
-//                }
-//                Spacer()
-//            }
+            // Top-right skip button (debug)
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        onSkip()
+                    } label: {
+                        Text("Skip to Cook ▸")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.85))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .glassContainer()
+                    }
+                    .accessibilityLabel("Skip to cooking minigames")
+                    .padding(.top, 16)
+                    .padding(.trailing, 24)
+                }
+                Spacer()
+            }
 
             // Bottom overlay: page dots
             VStack {
