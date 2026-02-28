@@ -146,7 +146,7 @@ class TopItOffScene: SKScene {
 
     private func setupHUD() {
         // Title
-        let title = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        let title = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         title.text = "Top It Off"
         title.fontSize = 34
         title.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
@@ -157,7 +157,7 @@ class TopItOffScene: SKScene {
         addChild(title)
 
         // Subtitle
-        let subtitle = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        let subtitle = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         subtitle.text = "Match each topping to its role"
         subtitle.fontSize = 18
         subtitle.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 0.45)
@@ -184,7 +184,7 @@ class TopItOffScene: SKScene {
         addChild(hudPill)
 
         // Flips counter
-        flipsLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        flipsLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         flipsLabel.text = "Flips: 0"
         flipsLabel.fontSize = 20
         flipsLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 0.7)
@@ -195,7 +195,7 @@ class TopItOffScene: SKScene {
         addChild(flipsLabel)
 
         // Match counter
-        matchLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        matchLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         matchLabel.text = "Matches: 0/6"
         matchLabel.fontSize = 20
         matchLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.50, alpha: 1.0)
@@ -337,7 +337,7 @@ class TopItOffScene: SKScene {
             emojiLabel.position = CGPoint(x: 0, y: 20)
             frontFace.addChild(emojiLabel)
 
-            let nameLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+            let nameLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
             nameLabel.text = name
             nameLabel.fontSize = 15
             nameLabel.fontColor = toppingTextColor
@@ -346,7 +346,7 @@ class TopItOffScene: SKScene {
             nameLabel.position = CGPoint(x: 0, y: -22)
             frontFace.addChild(nameLabel)
 
-            let typeLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+            let typeLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
             typeLabel.text = "TOPPING"
             typeLabel.fontSize = 9
             typeLabel.fontColor = SKColor(red: 0.65, green: 0.50, blue: 0.30, alpha: 0.6)
@@ -355,7 +355,7 @@ class TopItOffScene: SKScene {
             typeLabel.position = CGPoint(x: 0, y: cardHeight / 2 - 16)
             frontFace.addChild(typeLabel)
         } else {
-            let roleLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+            let roleLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
             roleLabel.text = "\"\(data.text)\""
             roleLabel.fontSize = 14
             roleLabel.fontColor = roleTextColor
@@ -373,7 +373,7 @@ class TopItOffScene: SKScene {
             icon.position = CGPoint(x: 0, y: 28)
             frontFace.addChild(icon)
 
-            let typeLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+            let typeLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
             typeLabel.text = "ROLE"
             typeLabel.fontSize = 9
             typeLabel.fontColor = SKColor(red: 0.65, green: 0.50, blue: 0.30, alpha: 0.6)
@@ -825,7 +825,7 @@ class TopItOffScene: SKScene {
         }
 
         // "Well Done!" label
-        let doneLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        let doneLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         doneLabel.text = "Well Done!"
         doneLabel.fontSize = 48
         doneLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.35, alpha: 1.0)
@@ -910,7 +910,7 @@ class TopItOffScene: SKScene {
         addChild(rimHighlight)
 
         // "Your Bowl" label
-        let bowlLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        let bowlLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         bowlLabel.text = "Your Bowl"
         bowlLabel.fontSize = 14
         bowlLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 0.55)

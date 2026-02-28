@@ -15,7 +15,7 @@ class PlaceholderMinigameScene: SKScene {
         let gameIndex = (userData?["index"] as? Int ?? 0) + 1
 
         // Title label
-        let titleLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        let titleLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         titleLabel.text = "Minigame \(gameIndex)"
         titleLabel.fontSize = 36
         titleLabel.fontColor = .white
@@ -25,7 +25,7 @@ class PlaceholderMinigameScene: SKScene {
         addChild(titleLabel)
 
         // Instruction label
-        let instructionLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        let instructionLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         instructionLabel.text = "Tap to Complete"
         instructionLabel.fontSize = 22
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)

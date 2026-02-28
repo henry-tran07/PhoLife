@@ -247,13 +247,13 @@ struct SplashView: View {
         ZStack {
             // Warm glow behind title text
             Text("PhoLife")
-                .font(.custom("SFCompactRounded-Bold", size: 58))
+                .font(.system(size: 58, weight: .bold, design: .rounded))
                 .foregroundStyle(warmAmber.opacity(0.3))
                 .blur(radius: 16)
                 .opacity(titleVisible ? 1 : 0)
 
             Text("PhoLife")
-                .font(.custom("SFCompactRounded-Bold", size: 58))
+                .font(.system(size: 58, weight: .bold, design: .rounded))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [
@@ -278,7 +278,7 @@ struct SplashView: View {
     private var subtitleSection: some View {
         VStack(spacing: 8) {
             Text("The story of Vietnamese ph\u{1EDF}")
-                .font(.custom("SFCompactRounded-Regular", size: 20))
+                .font(.system(size: 20, weight: .regular, design: .rounded))
                 .foregroundStyle(cream.opacity(0.7))
                 .opacity(subtitleVisible ? 1 : 0)
                 .offset(y: subtitleVisible ? 0 : 6)
@@ -295,9 +295,9 @@ struct SplashView: View {
     private var landscapeHintSection: some View {
         HStack(spacing: 8) {
             Image(systemName: "ipad.landscape")
-                .font(.custom("SFCompactRounded-Medium", size: 18))
+                .font(.system(size: 18, weight: .medium, design: .rounded))
             Text("Best in landscape")
-                .font(.custom("SFCompactRounded-Medium", size: 15))
+                .font(.system(size: 15, weight: .medium, design: .rounded))
         }
         .foregroundStyle(cream.opacity(0.45))
         .padding(.top, 12)

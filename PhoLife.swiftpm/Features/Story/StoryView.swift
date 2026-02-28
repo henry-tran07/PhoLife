@@ -78,7 +78,7 @@ struct StoryView: View {
                         onSkip()
                     } label: {
                         Text("Skip to Cook \u{25B8}")
-                            .font(.custom("SFCompactRounded-Medium", size: 14))
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
                             .foregroundStyle(.white.opacity(0.85))
                             .padding(.horizontal, 16)
                             .padding(.vertical, 10)

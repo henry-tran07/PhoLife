@@ -145,7 +145,7 @@ struct MinigameIntroCard: View {
             VStack(spacing: 18) {
                 // Step badge - premium gradient
                 Text("Step \(minigameIndex + 1) of 8")
-                    .font(.custom("SFCompactRounded-Bold", size: 13))
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
                     .tracking(0.8)
                     .textCase(.uppercase)
                     .foregroundStyle(.white)
@@ -190,7 +190,7 @@ struct MinigameIntroCard: View {
                         .frame(width: 72, height: 72)
 
                     Image(systemName: stepIcons[safe: minigameIndex] ?? "fork.knife")
-                        .font(.custom("SFCompactRounded-Medium", size: 36))
+                        .font(.system(size: 36, weight: .medium, design: .rounded))
                         .foregroundStyle(warmAmber)
                         .shadow(color: warmAmber.opacity(0.3), radius: 6)
                 }
@@ -199,7 +199,7 @@ struct MinigameIntroCard: View {
 
                 // Minigame title
                 Text(minigameTitle)
-                    .font(.custom("SFCompactRounded-Bold", size: 28))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [warmAmber, cream],
@@ -218,18 +218,18 @@ struct MinigameIntroCard: View {
 
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Khoa")
-                            .font(.custom("SFCompactRounded-Bold", size: 16))
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
                             .foregroundStyle(warmAmber)
 
                         Text(typewriterText)
-                            .font(.custom("SFCompactRounded-Medium", size: 18))
+                            .font(.system(size: 18, weight: .medium, design: .rounded))
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.leading)
                             .lineSpacing(3)
 
                         if showTapIndicator {
                             Text("\u{25BC}")
-                                .font(.custom("SFCompactRounded-Regular", size: 14))
+                                .font(.system(size: 14, weight: .regular, design: .rounded))
                                 .foregroundStyle(.white.opacity(0.6))
                                 .modifier(IntroCardPulseModifier())
                                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -259,7 +259,7 @@ struct MinigameIntroCard: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: 36, height: 36)
                                 Text(name)
-                                    .font(.custom("SFCompactRounded-Medium", size: 10))
+                                    .font(.system(size: 10, weight: .medium, design: .rounded))
                                     .foregroundStyle(cream)
                             }
                             .opacity(spicePreviewVisible ? 1 : 0)
@@ -283,7 +283,7 @@ struct MinigameIntroCard: View {
                         onStart()
                     } label: {
                         Text("Start")
-                            .font(.custom("SFCompactRounded-Bold", size: 20))
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
                             .tracking(0.5)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 52)

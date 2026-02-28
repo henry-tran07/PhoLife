@@ -713,7 +713,7 @@ class SimmerBrothScene: SKScene {
         hudBG.zPosition = 99
         addChild(hudBG)
 
-        timerLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        timerLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         timerLabel.text = "Time: 35"
         timerLabel.fontSize = 28
         timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
@@ -724,7 +724,7 @@ class SimmerBrothScene: SKScene {
         addChild(timerLabel)
 
         // Zone percentage label
-        zonePercentLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        zonePercentLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         zonePercentLabel.text = "0%"
         zonePercentLabel.fontSize = 22
         zonePercentLabel.fontColor = SKColor(red: 0.5, green: 0.9, blue: 0.5, alpha: 0.8)
@@ -734,7 +734,7 @@ class SimmerBrothScene: SKScene {
         zonePercentLabel.zPosition = 100
         addChild(zonePercentLabel)
 
-        instructionLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        instructionLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         instructionLabel.text = "Tap to rise, release to fall -- keep in the green!"
         instructionLabel.fontSize = 18
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)
@@ -885,7 +885,7 @@ class SimmerBrothScene: SKScene {
                 expandingRing(at: potTop,
                               color: SKColor(red: 0.3, green: 0.9, blue: 0.4, alpha: 0.6))
 
-                let simmerLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+                let simmerLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
                 simmerLabel.text = "Simmering!"
                 simmerLabel.fontSize = 24
                 simmerLabel.fontColor = SKColor(red: 0.35, green: 0.90, blue: 0.40, alpha: 1.0)
@@ -961,7 +961,7 @@ class SimmerBrothScene: SKScene {
             stars = 1
         }
 
-        let timesUpLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        let timesUpLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         timesUpLabel.text = "Time's Up!"
         timesUpLabel.fontSize = 46
         timesUpLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.8, alpha: 1)
@@ -973,7 +973,7 @@ class SimmerBrothScene: SKScene {
         timesUpLabel.alpha = 0
         addChild(timesUpLabel)
 
-        let scoreLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        let scoreLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         scoreLabel.text = "In Zone: \(score)%"
         scoreLabel.fontSize = 30
         scoreLabel.fontColor = stars >= 3

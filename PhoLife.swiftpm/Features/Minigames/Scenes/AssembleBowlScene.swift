@@ -328,7 +328,7 @@ class AssembleBowlScene: SKScene {
         container.addChild(icon)
 
         // Name label on the right
-        let nameLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        let nameLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         nameLabel.text = ingredient.name
         nameLabel.fontSize = 20
         nameLabel.fontColor = .white
@@ -403,7 +403,7 @@ class AssembleBowlScene: SKScene {
 
     private func setupHUD() {
         // Title
-        let title = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        let title = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         title.text = "Build Your Bowl"
         title.fontSize = 34
         title.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
@@ -414,7 +414,7 @@ class AssembleBowlScene: SKScene {
         gameLayer.addChild(title)
 
         // Step indicator
-        stepLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        stepLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         stepLabel.text = "Step 1/4"
         stepLabel.fontSize = 22
         stepLabel.fontColor = SKColor(white: 1.0, alpha: 0.7)
@@ -425,7 +425,7 @@ class AssembleBowlScene: SKScene {
         gameLayer.addChild(stepLabel)
 
         // Feedback label (hidden by default)
-        feedbackLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        feedbackLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         feedbackLabel.text = ""
         feedbackLabel.fontSize = 24
         feedbackLabel.fontColor = SKColor(red: 1.0, green: 0.55, blue: 0.40, alpha: 1.0)
@@ -837,7 +837,7 @@ class AssembleBowlScene: SKScene {
     }
 
     private func showFloatingPoints(_ text: String, at position: CGPoint, color: SKColor) {
-        let label = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        let label = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         label.text = text
         label.fontSize = 30
         label.fontColor = color

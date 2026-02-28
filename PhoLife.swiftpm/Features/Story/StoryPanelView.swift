@@ -93,7 +93,7 @@ struct StoryPanelView: View {
                     onComplete()
                 } label: {
                     Text("Let's Cook")
-                        .font(.custom("SFCompactRounded-Bold", size: 22))
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 48)
                         .padding(.vertical, 18)
@@ -135,11 +135,11 @@ struct StoryPanelView: View {
             // Text content
             VStack(alignment: .leading, spacing: 6) {
                 Text("Khoa")
-                    .font(.custom("SFCompactRounded-Bold", size: 18))
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(warmAmber)
 
                 Text(typewriterText)
-                    .font(.custom("SFCompactRounded-Medium", size: 30))
+                    .font(.system(size: 30, weight: .medium, design: .rounded))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.leading)
                     .lineSpacing(4)
@@ -147,7 +147,7 @@ struct StoryPanelView: View {
                 // Tap-to-continue indicator
                 if showTapIndicator {
                     Text("\u{25BC}")
-                        .font(.custom("SFCompactRounded-Regular", size: 14))
+                        .font(.system(size: 14, weight: .regular, design: .rounded))
                         .foregroundStyle(.white.opacity(0.6))
                         .modifier(PulseModifier())
                         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -168,7 +168,7 @@ struct StoryPanelView: View {
     @ViewBuilder
     private func titleText(fontSize: CGFloat) -> some View {
         Text(panel.title)
-            .font(.custom("SFCompactRounded-Bold", size: fontSize))
+            .font(.system(size: fontSize, weight: .bold, design: .rounded))
             .foregroundStyle(warmAmber)
             .shadow(color: .black.opacity(0.6), radius: 5, x: 0, y: 2)
             .multilineTextAlignment(.center)

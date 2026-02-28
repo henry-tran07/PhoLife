@@ -239,7 +239,7 @@ class CleanBonesScene: SKScene {
         hudBG.zPosition = 99
         addChild(hudBG)
 
-        timerLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        timerLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         timerLabel.text = "Time: 20"
         timerLabel.fontSize = 28
         timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
@@ -250,7 +250,7 @@ class CleanBonesScene: SKScene {
         addChild(timerLabel)
 
         // Score counter at top-right
-        let scoreLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        let scoreLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         scoreLabel.name = "scoreLabel"
         scoreLabel.text = "Popped: 0"
         scoreLabel.fontSize = 22
@@ -262,7 +262,7 @@ class CleanBonesScene: SKScene {
         addChild(scoreLabel)
 
         // Instruction label that fades out
-        let instructionLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        let instructionLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         instructionLabel.text = "Tap the scum bubbles!"
         instructionLabel.fontSize = 20
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.7)
@@ -617,7 +617,7 @@ class CleanBonesScene: SKScene {
         ]))
 
         // Floating "+1" text with improved styling
-        let pointLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        let pointLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         pointLabel.text = "+1"
         pointLabel.fontSize = 20
         pointLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.6, alpha: 0.9)
@@ -696,7 +696,7 @@ class CleanBonesScene: SKScene {
         timerLabel.text = "Time: 0"
 
         // Flash "Time's Up!" label
-        let timesUpLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        let timesUpLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         timesUpLabel.text = "Time's Up!"
         timesUpLabel.fontSize = 46
         timesUpLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.8, alpha: 1)

@@ -238,7 +238,7 @@ class SeasonBrothScene: SKScene {
         addChild(harmonyArc)
 
         // "Balance" label
-        harmonyLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        harmonyLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         harmonyLabel.text = "Balance"
         harmonyLabel.fontSize = 14
         harmonyLabel.fontColor = SKColor(white: 1.0, alpha: 0.5)
@@ -345,7 +345,7 @@ class SeasonBrothScene: SKScene {
             thumb.addChild(thumbHighlight)
 
             // Label on the left
-            let label = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+            let label = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
             label.text = config.0
             label.fontSize = 18
             label.fontColor = config.2
@@ -356,7 +356,7 @@ class SeasonBrothScene: SKScene {
             addChild(label)
 
             // Value label on the right
-            let valueLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+            let valueLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
             valueLabel.text = String(format: "%.0f%%", config.1 * 100)
             valueLabel.fontSize = 16
             valueLabel.fontColor = SKColor(white: 1.0, alpha: 0.6)
@@ -416,7 +416,7 @@ class SeasonBrothScene: SKScene {
         btnHighlight.zPosition = 0.1
         tasteButton.addChild(btnHighlight)
 
-        tasteButtonLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        tasteButtonLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         tasteButtonLabel.text = "Taste"
         tasteButtonLabel.fontSize = 24
         tasteButtonLabel.fontColor = SKColor(red: 0.15, green: 0.10, blue: 0.05, alpha: 1.0)
@@ -439,7 +439,7 @@ class SeasonBrothScene: SKScene {
 
     private func setupHUD() {
         // Title label below progress bar
-        attemptLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        attemptLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         attemptLabel.text = "Season the Broth"
         attemptLabel.fontSize = 30
         attemptLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
@@ -450,7 +450,7 @@ class SeasonBrothScene: SKScene {
         addChild(attemptLabel)
 
         // Instruction subtitle
-        let instructionLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        let instructionLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         instructionLabel.text = "Adjust the sliders to find the perfect balance"
         instructionLabel.fontSize = 18
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.5)
@@ -467,7 +467,7 @@ class SeasonBrothScene: SKScene {
         ]))
 
         // Feedback label (hidden initially)
-        feedbackLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        feedbackLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         feedbackLabel.text = ""
         feedbackLabel.fontSize = 38
         feedbackLabel.fontColor = .white
@@ -479,7 +479,7 @@ class SeasonBrothScene: SKScene {
         addChild(feedbackLabel)
 
         // Score label (hidden initially)
-        scoreLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        scoreLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         scoreLabel.text = ""
         scoreLabel.fontSize = 26
         scoreLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1.0)
@@ -888,7 +888,7 @@ class SeasonBrothScene: SKScene {
         }
 
         // Final result display
-        let finalLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        let finalLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         finalLabel.text = bestScore >= 100 ? "Master Seasoner!" : "Broth Seasoned!"
         finalLabel.fontSize = 44
         finalLabel.fontColor = SKColor(red: 1.0, green: 0.88, blue: 0.35, alpha: 1.0)

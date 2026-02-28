@@ -438,7 +438,7 @@ class CharAromaticsScene: SKScene {
     }
 
     private func buildLabels() {
-        roundLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        roundLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         roundLabel.fontSize = 28
         roundLabel.fontColor = SKColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1)
         roundLabel.position = CGPoint(x: size.width * 0.45, y: size.height - 160)
@@ -447,7 +447,7 @@ class CharAromaticsScene: SKScene {
         roundLabel.zPosition = 10
         addChild(roundLabel)
 
-        feedbackLabel = SKLabelNode(fontNamed: "SFCompactRounded-Heavy")
+        feedbackLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .heavy))
         feedbackLabel.fontSize = 52
         feedbackLabel.fontColor = .white
         feedbackLabel.position = CGPoint(x: size.width * 0.45, y: size.height * 0.62)
@@ -457,7 +457,7 @@ class CharAromaticsScene: SKScene {
         feedbackLabel.alpha = 0
         addChild(feedbackLabel)
 
-        instructionLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
+        instructionLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .medium))
         instructionLabel.fontSize = 22
         instructionLabel.fontColor = SKColor(white: 1.0, alpha: 0.55)
         instructionLabel.position = CGPoint(x: size.width * 0.45, y: size.height * 0.22)
@@ -782,7 +782,7 @@ class CharAromaticsScene: SKScene {
         ]))
 
         // Points label with improved animation
-        let pointsLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
+        let pointsLabel = SKLabelNode(fontNamed: Font.roundedName(weight: .bold))
         pointsLabel.text = "+\(points)"
         pointsLabel.fontSize = 36
         pointsLabel.fontColor = color
