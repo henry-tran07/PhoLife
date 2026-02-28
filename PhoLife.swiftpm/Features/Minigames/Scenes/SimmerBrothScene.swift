@@ -9,7 +9,7 @@ class SimmerBrothScene: SKScene {
 
     // MARK: - Game Config
 
-    private let gameDuration: TimeInterval = 35.0
+    private let gameDuration: TimeInterval = 20.0
     private let postGameDelay: TimeInterval = 1.2
 
     // Player bar physics (Stardew-style: tap to rise, release to fall)
@@ -953,9 +953,9 @@ class SimmerBrothScene: SKScene {
         let score = Int(percentage * 100)
 
         let stars: Int
-        if percentage >= 0.40 {
+        if percentage >= 0.15 {
             stars = 3
-        } else if percentage >= 0.20 {
+        } else if percentage >= 0.05 {
             stars = 2
         } else {
             stars = 1

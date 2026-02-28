@@ -9,14 +9,14 @@ class CleanBonesScene: SKScene {
 
     // MARK: - Game Config
 
-    private let gameDuration: TimeInterval = 35.0
+    private let gameDuration: TimeInterval = 20.0
     private let postGameDelay: TimeInterval = 1.0
     private let bubbleMinRadius: CGFloat = 15.0
     private let bubbleMaxRadius: CGFloat = 35.0
     private let bubbleRiseDurationMin: TimeInterval = 2.5
     private let bubbleRiseDurationMax: TimeInterval = 4.0
-    private let startSpawnInterval: TimeInterval = 1.0
-    private let endSpawnInterval: TimeInterval = 0.333
+    private let startSpawnInterval: TimeInterval = 0.6
+    private let endSpawnInterval: TimeInterval = 0.2
 
     // MARK: - State
 
@@ -240,7 +240,7 @@ class CleanBonesScene: SKScene {
         addChild(hudBG)
 
         timerLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
-        timerLabel.text = "Time: 35"
+        timerLabel.text = "Time: 20"
         timerLabel.fontSize = 28
         timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1)
         timerLabel.position = CGPoint(x: size.width / 2, y: size.height - 160)
@@ -453,7 +453,7 @@ class CleanBonesScene: SKScene {
         let spawnMinX = potRect.minX + innerInset + radius
         let spawnMaxX = potRect.maxX - innerInset - radius
         let spawnX = CGFloat.random(in: spawnMinX...spawnMaxX)
-        let spawnY = potRect.minY + innerInset
+        let spawnY = CGFloat.random(in: (potRect.minY + innerInset + radius)...(potRect.maxY - innerInset - radius))
 
         bubble.position = CGPoint(x: spawnX, y: spawnY)
         bubble.zPosition = 30
@@ -461,11 +461,12 @@ class CleanBonesScene: SKScene {
 
         addChild(bubble)
 
-        // Rise duration
-        let riseDuration = TimeInterval.random(in: bubbleRiseDurationMin...bubbleRiseDurationMax)
-
         // Target Y: near the top of the pot
         let targetY = potRect.maxY - innerInset
+        let totalPotHeight = potRect.maxY - innerInset - (potRect.minY + innerInset)
+        let distanceToTop = targetY - spawnY
+        let fraction = distanceToTop / totalPotHeight
+        let riseDuration = (bubbleRiseDurationMin + CGFloat.random(in: 0...(bubbleRiseDurationMax - bubbleRiseDurationMin))) * fraction
 
         // Slight horizontal wobble during rise
         let wobbleAmplitude = CGFloat.random(in: 8...20)
@@ -753,9 +754,9 @@ class CleanBonesScene: SKScene {
         let score = Int(percentage * 100)
 
         let stars: Int
-        if percentage >= 0.90 {
+        if percentage >= 0.50 {
             stars = 3
-        } else if percentage >= 0.70 {
+        } else if percentage >= 0.30 {
             stars = 2
         } else {
             stars = 1

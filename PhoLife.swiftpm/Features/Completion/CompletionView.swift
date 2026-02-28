@@ -31,6 +31,10 @@ struct CompletionView: View {
     @State private var confettiActive = false
     @State private var narratorVisible = false
     @State private var showResults = false
+    @State private var displayedCharCount: Int = 0
+    @State private var isTypewriting: Bool = false
+    @State private var typewriterComplete: Bool = false
+    @State private var showCompletionTapIndicator: Bool = false
 
     // MARK: - Computed
 
@@ -42,6 +46,25 @@ struct CompletionView: View {
 
     private var totalScore: Int {
         gameState.minigameResults.reduce(0) { $0 + $1.score }
+    }
+
+    private var currentExpression: NarratorExpression {
+        isTypewriting ? .speak : .happy
+    }
+
+    private var completionNarrationText: String {
+        "Your bowl is complete. Every great meal carries a story — now this one is yours."
+    }
+
+    private var typewriterText: AttributedString {
+        let text = completionNarrationText
+        guard !text.isEmpty else { return AttributedString("") }
+        var result = AttributedString(text)
+        let total = text.count
+        guard displayedCharCount < total else { return result }
+        let visibleEnd = result.characters.index(result.startIndex, offsetBy: displayedCharCount)
+        result[visibleEnd..<result.endIndex].foregroundColor = .clear
+        return result
     }
 
     // MARK: - Body
@@ -119,7 +142,7 @@ struct CompletionView: View {
         VStack(spacing: 16) {
             Spacer()
 
-            NarratorPortraitView(expression: .happy, isSpeaking: false)
+            NarratorPortraitView(expression: currentExpression, isSpeaking: isTypewriting)
                 .frame(width: 160, height: 160)
 
             VStack(alignment: .center, spacing: 6) {
@@ -127,7 +150,7 @@ struct CompletionView: View {
                     .font(.custom("SFCompactRounded-Bold", size: 18))
                     .foregroundStyle(warmAmber)
 
-                Text("Your bowl is complete. Every great meal carries a story — now this one is yours.")
+                Text(typewriterText)
                     .font(.custom("SFCompactRounded-Medium", size: 22))
                     .foregroundStyle(cream)
                     .multilineTextAlignment(.center)
@@ -138,11 +161,14 @@ struct CompletionView: View {
             .frame(maxWidth: 500)
             .glassContainer()
 
-            Text("▼")
-                .font(.custom("SFCompactRounded-Regular", size: 16))
-                .foregroundStyle(.white.opacity(0.6))
-                .modifier(CompletionPulseModifier())
-                .padding(.top, 8)
+            if showCompletionTapIndicator {
+                Text("▼")
+                    .font(.custom("SFCompactRounded-Regular", size: 16))
+                    .foregroundStyle(.white.opacity(0.6))
+                    .modifier(CompletionPulseModifier())
+                    .padding(.top, 8)
+                    .transition(.opacity)
+            }
 
             Spacer()
         }
@@ -150,7 +176,15 @@ struct CompletionView: View {
         .scaleEffect(narratorVisible ? 1.0 : 0.9)
         .contentShape(Rectangle())
         .onTapGesture {
-            transitionToResults()
+            if isTypewriting {
+                typewriterComplete = true
+            } else if typewriterComplete {
+                transitionToResults()
+            }
+        }
+        .task(id: narratorVisible) {
+            guard narratorVisible else { return }
+            await runCompletionTypewriter()
         }
     }
 
@@ -277,7 +311,7 @@ struct CompletionView: View {
                 .blur(radius: 25)
                 .scaleEffect(ambientGlow ? 1.06 : 0.94)
 
-            Image("completion-bowl")
+            Image("completion-bowl-pixel")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 240, height: 240)
@@ -435,6 +469,43 @@ struct CompletionView: View {
         // Narrator entrance
         withAnimation(.spring(duration: 0.6, bounce: 0.15).delay(0.3)) {
             narratorVisible = true
+        }
+    }
+
+    private func runCompletionTypewriter() async {
+        let text = completionNarrationText
+        guard !text.isEmpty else { return }
+
+        displayedCharCount = 0
+        showCompletionTapIndicator = false
+        typewriterComplete = false
+        isTypewriting = true
+
+        try? await Task.sleep(for: .milliseconds(600))
+
+        let totalChars = text.count
+        for i in 1...totalChars {
+            if Task.isCancelled { return }
+            if typewriterComplete {
+                displayedCharCount = totalChars
+                break
+            }
+            displayedCharCount = i
+            let charIndex = text.index(text.startIndex, offsetBy: i - 1)
+            let char = text[charIndex]
+            if !char.isWhitespace && !".,!?;:—\u{2014}".contains(char) {
+                AudioManager.shared.playSFX("text-blip-\(Int.random(in: 0...2))")
+            }
+            try? await Task.sleep(for: .milliseconds(25))
+        }
+
+        isTypewriting = false
+        typewriterComplete = true
+
+        try? await Task.sleep(for: .milliseconds(300))
+        if Task.isCancelled { return }
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showCompletionTapIndicator = true
         }
     }
 

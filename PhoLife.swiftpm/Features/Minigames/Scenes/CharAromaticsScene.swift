@@ -933,9 +933,9 @@ class CharAromaticsScene: SKScene {
 
         let score = Int((CGFloat(totalPoints) / 12.0) * 100.0)
         let stars: Int
-        if totalPoints >= 10 {
+        if totalPoints >= 6 {
             stars = 3
-        } else if totalPoints >= 7 {
+        } else if totalPoints >= 4 {
             stars = 2
         } else {
             stars = 1

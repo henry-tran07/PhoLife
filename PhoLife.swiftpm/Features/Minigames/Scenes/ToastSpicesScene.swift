@@ -13,19 +13,20 @@ class ToastSpicesScene: SKScene {
         let name: String
         let symbol: String
         let isCorrect: Bool
+        let imageName: String
     }
 
     static let allSpices: [SpiceData] = [
-        SpiceData(name: "Star Anise", symbol: "★", isCorrect: true),
-        SpiceData(name: "Cinnamon", symbol: "C", isCorrect: true),
-        SpiceData(name: "Cardamom", symbol: "K", isCorrect: true),
-        SpiceData(name: "Cloves", symbol: "L", isCorrect: true),
-        SpiceData(name: "Coriander", symbol: "●", isCorrect: true),
-        SpiceData(name: "Paprika", symbol: "P", isCorrect: false),
-        SpiceData(name: "Cumin", symbol: "U", isCorrect: false),
-        SpiceData(name: "Turmeric", symbol: "T", isCorrect: false),
-        SpiceData(name: "Oregano", symbol: "G", isCorrect: false),
-        SpiceData(name: "Black Pepper", symbol: "B", isCorrect: false),
+        SpiceData(name: "Star Anise", symbol: "★", isCorrect: true, imageName: "spice-star-anise"),
+        SpiceData(name: "Cinnamon", symbol: "C", isCorrect: true, imageName: "spice-cinnamon"),
+        SpiceData(name: "Cardamom", symbol: "K", isCorrect: true, imageName: "spice-cardamom"),
+        SpiceData(name: "Cloves", symbol: "L", isCorrect: true, imageName: "spice-cloves"),
+        SpiceData(name: "Coriander", symbol: "●", isCorrect: true, imageName: "spice-coriander"),
+        SpiceData(name: "Paprika", symbol: "P", isCorrect: false, imageName: "spice-bomb"),
+        SpiceData(name: "Cumin", symbol: "U", isCorrect: false, imageName: "spice-bomb"),
+        SpiceData(name: "Turmeric", symbol: "T", isCorrect: false, imageName: "spice-bomb"),
+        SpiceData(name: "Oregano", symbol: "G", isCorrect: false, imageName: "spice-bomb"),
+        SpiceData(name: "Black Pepper", symbol: "B", isCorrect: false, imageName: "spice-bomb"),
     ]
 
     static let correctSpices: [SpiceData] = allSpices.filter { $0.isCorrect }
@@ -33,12 +34,12 @@ class ToastSpicesScene: SKScene {
 
     // MARK: - Constants
 
-    private let gameDuration: TimeInterval = 40.0
+    private let gameDuration: TimeInterval = 20.0
     // Wrong catches deduct points but don't end the game
 
-    private let spiceRadius: CGFloat = 20.0
-    private let spiceDiameter: CGFloat = 40.0
-    private let swipeHitRadius: CGFloat = 30.0
+    private let spiceRadius: CGFloat = 30.0
+    private let spiceDiameter: CGFloat = 60.0
+    private let swipeHitRadius: CGFloat = 40.0
     private let spiceNodeName = "spice"
 
     // MARK: - Game State
@@ -48,7 +49,7 @@ class ToastSpicesScene: SKScene {
     private var correctCatches: Int = 0
     private var wrongCatches: Int = 0
     private var totalCorrectSpawned: Int = 0
-    private var timeRemaining: TimeInterval = 40.0
+    private var timeRemaining: TimeInterval = 20.0
     private var gameActive: Bool = false
     private var elapsedTime: TimeInterval = 0.0
     private var lastSpawnTime: TimeInterval = 0.0
@@ -298,7 +299,7 @@ class ToastSpicesScene: SKScene {
 
         // Timer label -- top-center
         timerLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
-        timerLabel.text = "0:40"
+        timerLabel.text = "0:20"
         timerLabel.fontSize = 30
         timerLabel.fontColor = SKColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1.0)
         timerLabel.position = CGPoint(x: size.width / 2, y: hudY)
@@ -380,9 +381,9 @@ class ToastSpicesScene: SKScene {
         // 3 stars: caught 5+ correct spices
         // 2 stars: caught 4+ correct spices
         // 1 star: everything else
-        if correctCatches >= 5 {
+        if correctCatches >= 2 {
             return 3
-        } else if correctCatches >= 4 {
+        } else if correctCatches >= 1 {
             return 2
         } else {
             return 1
@@ -499,45 +500,11 @@ class ToastSpicesScene: SKScene {
             container.addChild(outerGlow)
         }
 
-        // Circle background with improved colors
-        let circle = SKShapeNode(circleOfRadius: spiceRadius)
-        if data.isCorrect {
-            circle.fillColor = correctCircleColor(for: data)
-            circle.strokeColor = SKColor(red: 0.90, green: 0.70, blue: 0.30, alpha: 0.9)
-        } else {
-            circle.fillColor = SKColor(red: 0.50, green: 0.15, blue: 0.12, alpha: 0.95)
-            circle.strokeColor = SKColor(red: 0.70, green: 0.28, blue: 0.22, alpha: 0.9)
-        }
-        circle.lineWidth = 2.5
-        circle.glowWidth = data.isCorrect ? 2.0 : 0.5
-        container.addChild(circle)
-
-        // Inner highlight for depth
-        let innerHighlight = SKShapeNode(circleOfRadius: spiceRadius * 0.7)
-        innerHighlight.fillColor = SKColor(white: 1.0, alpha: 0.05)
-        innerHighlight.strokeColor = .clear
-        innerHighlight.position = CGPoint(x: -2, y: 3)
-        innerHighlight.zPosition = 0.1
-        circle.addChild(innerHighlight)
-
-        // Symbol label with shadow
-        let shadowLabel = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
-        shadowLabel.text = data.symbol
-        shadowLabel.fontSize = 22
-        shadowLabel.fontColor = SKColor(red: 0, green: 0, blue: 0, alpha: 0.3)
-        shadowLabel.verticalAlignmentMode = .center
-        shadowLabel.horizontalAlignmentMode = .center
-        shadowLabel.position = CGPoint(x: 1, y: -1)
-        container.addChild(shadowLabel)
-
-        let label = SKLabelNode(fontNamed: "SFCompactRounded-Bold")
-        label.text = data.symbol
-        label.fontSize = 22
-        label.fontColor = .white
-        label.verticalAlignmentMode = .center
-        label.horizontalAlignmentMode = .center
-        label.position = CGPoint.zero
-        container.addChild(label)
+        // Pixel art sprite
+        let sprite = SKSpriteNode(imageNamed: data.imageName)
+        sprite.size = CGSize(width: spiceDiameter, height: spiceDiameter)
+        sprite.zPosition = 0
+        container.addChild(sprite)
 
         // Name label below for identification
         let nameLabel = SKLabelNode(fontNamed: "SFCompactRounded-Medium")
@@ -555,27 +522,10 @@ class ToastSpicesScene: SKScene {
             pulseOut.timingMode = .easeInEaseOut
             let pulseIn = SKAction.scale(to: 1.0, duration: 0.4)
             pulseIn.timingMode = .easeInEaseOut
-            circle.run(SKAction.repeatForever(SKAction.sequence([pulseOut, pulseIn])))
+            sprite.run(SKAction.repeatForever(SKAction.sequence([pulseOut, pulseIn])))
         }
 
         return container
-    }
-
-    private func correctCircleColor(for data: SpiceData) -> SKColor {
-        switch data.name {
-        case "Star Anise":
-            return SKColor(red: 0.45, green: 0.30, blue: 0.15, alpha: 0.95)
-        case "Cinnamon":
-            return SKColor(red: 0.55, green: 0.25, blue: 0.12, alpha: 0.95)
-        case "Cardamom":
-            return SKColor(red: 0.25, green: 0.42, blue: 0.22, alpha: 0.95)
-        case "Cloves":
-            return SKColor(red: 0.35, green: 0.20, blue: 0.10, alpha: 0.95)
-        case "Coriander":
-            return SKColor(red: 0.55, green: 0.48, blue: 0.25, alpha: 0.95)
-        default:
-            return SKColor(red: 0.45, green: 0.30, blue: 0.15, alpha: 0.95)
-        }
     }
 
     // MARK: - Touch Handling (Swipe Detection)

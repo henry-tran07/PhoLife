@@ -719,9 +719,9 @@ class SliceBeefScene: SKScene {
         gameEnded = true
 
         let stars: Int
-        if slicesMade > 5 {
+        if slicesMade > 2 {
             stars = 3
-        } else if slicesMade > 3 {
+        } else if slicesMade > 1 {
             stars = 2
         } else {
             stars = 1

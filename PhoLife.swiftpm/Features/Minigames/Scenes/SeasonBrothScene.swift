@@ -585,9 +585,9 @@ class SeasonBrothScene: SKScene {
     }
 
     private func starsForScore(_ score: Int) -> Int {
-        if score >= 100 {
+        if score >= 50 {
             return 3
-        } else if score >= 75 {
+        } else if score >= 25 {
             return 2
         } else {
             return 1

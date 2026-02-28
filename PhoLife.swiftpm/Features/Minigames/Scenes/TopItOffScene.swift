@@ -737,9 +737,9 @@ class TopItOffScene: SKScene {
 
         // Determine stars and score
         let stars: Int
-        if totalFlips < 30 {
+        if totalFlips < 50 {
             stars = 3
-        } else if totalFlips < 40 {
+        } else if totalFlips < 60 {
             stars = 2
         } else {
             stars = 1

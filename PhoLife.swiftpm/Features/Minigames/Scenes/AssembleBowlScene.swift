@@ -1442,9 +1442,9 @@ class AssembleBowlScene: SKScene {
         let score = Int((Double(totalPoints) / 12.0) * 100.0)
 
         let stars: Int
-        if totalPoints >= 11 {
+        if totalPoints >= 6 {
             stars = 3
-        } else if totalPoints >= 8 {
+        } else if totalPoints >= 4 {
             stars = 2
         } else {
             stars = 1

@@ -27,6 +27,7 @@ struct MinigameIntroCard: View {
     @State private var typewriterComplete = false
     @State private var showTapIndicator = false
     @State private var dialogueFinished = false
+    @State private var spicePreviewVisible = false
 
     // MARK: - Constants
 
@@ -248,6 +249,32 @@ struct MinigameIntroCard: View {
                     await runTypewriter()
                 }
 
+                // Spice preview for Toast the Spices
+                if minigameIndex == 1 && dialogueFinished {
+                    HStack(spacing: 16) {
+                        ForEach(Array(["Star Anise", "Cinnamon", "Cardamom", "Cloves", "Coriander"].enumerated()), id: \.offset) { index, name in
+                            VStack(spacing: 4) {
+                                Image(spiceImageName(for: name))
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 36, height: 36)
+                                Text(name)
+                                    .font(.custom("SFCompactRounded-Medium", size: 10))
+                                    .foregroundStyle(cream)
+                            }
+                            .opacity(spicePreviewVisible ? 1 : 0)
+                            .scaleEffect(spicePreviewVisible ? 1.0 : 0.5)
+                            .animation(
+                                .spring(response: 0.4, dampingFraction: 0.7)
+                                    .delay(Double(index) * 0.1),
+                                value: spicePreviewVisible
+                            )
+                        }
+                    }
+                    .padding(.top, 4)
+                    .transition(.opacity)
+                }
+
                 // Start button - premium warm gradient with pulse (shown after dialogue finishes)
                 if dialogueFinished {
                     Button {
@@ -356,6 +383,17 @@ struct MinigameIntroCard: View {
 
     // MARK: - Helpers
 
+    private func spiceImageName(for name: String) -> String {
+        switch name {
+        case "Star Anise": return "spice-star-anise"
+        case "Cinnamon": return "spice-cinnamon"
+        case "Cardamom": return "spice-cardamom"
+        case "Cloves": return "spice-cloves"
+        case "Coriander": return "spice-coriander"
+        default: return "spice-star-anise"
+        }
+    }
+
     private var minigameTitle: String {
         guard minigameIndex >= 0, minigameIndex < CulturalFact.allFacts.count else {
             return "Cooking Step"
@@ -424,6 +462,9 @@ struct MinigameIntroCard: View {
             dialogueFinished = true
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                 buttonVisible = true
+            }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                spicePreviewVisible = true
             }
             withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(0.3)) {
                 buttonPulse = true
