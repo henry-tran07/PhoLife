@@ -119,7 +119,6 @@ struct MinigameContainerView: View {
                 AudioManager.shared.stopAmbient()
             case .playing:
                 sceneBlur = 0
-                AudioManager.shared.playAmbient("kitchen-ambient")
             case .scoreReveal:
                 sceneBlur = 4
                 AudioManager.shared.playSFX("star-reveal")

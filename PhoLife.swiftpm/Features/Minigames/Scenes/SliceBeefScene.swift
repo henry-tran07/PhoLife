@@ -58,6 +58,8 @@ class SliceBeefScene: SKScene {
         setupHUD()
         setupInstruction()
         setupAmbientSteam()
+        addVignette()
+        addAmbientParticles(color: SKColor(red: 1.0, green: 0.80, blue: 0.50, alpha: 1), birthRate: 1.0)
 
         scissorsY = beefTopY - 20
         scissorsDirection = -1
@@ -472,6 +474,10 @@ class SliceBeefScene: SKScene {
         ]))
 
         AudioManager.shared.playSFX("slice")
+        shakeCamera(intensity: 3, stepDuration: 0.03)
+        expandingRing(at: CGPoint(x: size.width / 2, y: yPosition),
+                      color: SKColor(red: 1.0, green: 0.90, blue: 0.60, alpha: 0.6),
+                      targetScale: 3.0)
         spawnSliceParticles(at: yPosition, beefCenterX: size.width / 2)
 
         sliceCountLabel.text = "Cuts: \(slicesMade)"

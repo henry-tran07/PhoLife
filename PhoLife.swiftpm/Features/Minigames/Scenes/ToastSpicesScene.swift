@@ -687,6 +687,7 @@ class ToastSpicesScene: SKScene {
             let distance = hypot(node.position.x - point.x, node.position.y - point.y)
             if distance <= self.swipeHitRadius + self.spiceRadius {
                 self.caughtSpiceIDs.insert(nodeID)
+                AudioManager.shared.playSFX("swipe")
                 self.processSpiceCatch(node: node)
             }
         }

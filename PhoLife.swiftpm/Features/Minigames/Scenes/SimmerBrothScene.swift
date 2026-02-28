@@ -878,6 +878,12 @@ class SimmerBrothScene: SKScene {
             timeInZone += dt
             if !wasInSimmerZone {
                 AudioManager.shared.playSFX("success-chime")
+                let potTop = CGPoint(x: potCenterX, y: potCenterY + potHeight / 2)
+                burstParticles(at: potTop, count: 10,
+                               colors: [SKColor(red: 0.3, green: 0.9, blue: 0.4, alpha: 1)],
+                               radius: 20...50, particleSize: 2...4)
+                expandingRing(at: potTop,
+                              color: SKColor(red: 0.3, green: 0.9, blue: 0.4, alpha: 0.6))
 
                 let simmerLabel = SKLabelNode(fontNamed: "SFProRounded-Bold")
                 simmerLabel.text = "Simmering!"
@@ -897,6 +903,10 @@ class SimmerBrothScene: SKScene {
                     .removeFromParent()
                 ]))
             }
+        } else if wasInSimmerZone {
+            // Just left the simmer zone
+            shakeCamera(intensity: 4, stepDuration: 0.04)
+            flashOverlay(color: SKColor(red: 1.0, green: 0.2, blue: 0.1, alpha: 1), alpha: 0.08, duration: 0.2)
         }
         wasInSimmerZone = currentlyInZone
 

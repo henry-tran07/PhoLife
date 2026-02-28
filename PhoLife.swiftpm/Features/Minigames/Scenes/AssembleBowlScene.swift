@@ -88,6 +88,9 @@ class AssembleBowlScene: SKScene {
         setupCards()
         setupHUD()
 
+        addVignette()
+        addAmbientParticles(color: SKColor(red: 0.85, green: 0.65, blue: 0.25, alpha: 1), birthRate: 1.0)
+
         gameActive = true
         updateHintPulse()
 
@@ -527,6 +530,8 @@ class AssembleBowlScene: SKScene {
 
         HapticManager.shared.medium()
         AudioManager.shared.playSFX("success-chime")
+        burstParticles(at: bowlCenter, count: 14, radius: 25...60)
+        expandingRing(at: bowlCenter, color: SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 0.6))
 
         // Remove hint pulse
         let idx = card.userData?["ingredientIndex"] as? Int ?? 0
@@ -610,6 +615,7 @@ class AssembleBowlScene: SKScene {
 
         HapticManager.shared.error()
         AudioManager.shared.playSFX("error-buzz")
+        shakeCamera(intensity: 5)
 
         // Shake/wiggle the card
         let wiggle = SKAction.sequence([
@@ -887,7 +893,6 @@ class AssembleBowlScene: SKScene {
         showFloatingPoints("+\(brothPoints)", at: bowlCenter, color: SKColor(red: 0.85, green: 0.68, blue: 0.22, alpha: 1.0))
 
         HapticManager.shared.success()
-        AudioManager.shared.playSFX("pour")
 
         // Phase 0: Brief anticipation pause
         run(SKAction.sequence([

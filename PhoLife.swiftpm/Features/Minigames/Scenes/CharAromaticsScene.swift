@@ -599,7 +599,6 @@ class CharAromaticsScene: SKScene {
         guard roundState == .playing else { return }
         roundState = .released
         HapticManager.shared.light()
-        AudioManager.shared.playSFX("sizzle")
         evaluateAndShowFeedback()
     }
 
@@ -734,6 +733,7 @@ class CharAromaticsScene: SKScene {
             color = SKColor(red: 0.95, green: 0.3, blue: 0.25, alpha: 1)
             HapticManager.shared.error()
             AudioManager.shared.playSFX("error-buzz")
+            shakeCamera(intensity: 5)
 
             // Red flash overlay for miss
             let flashOverlay = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))

@@ -71,6 +71,8 @@ class SeasonBrothScene: SKScene {
         updateBrothVisuals()
         updateHarmonyMeter()
         buildSteamWisps()
+        addVignette()
+        addAmbientParticles(color: SKColor(red: 1.0, green: 0.80, blue: 0.45, alpha: 1), birthRate: 1.0)
 
         let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
         curtain.position = CGPoint(x: size.width / 2, y: size.height / 2)
@@ -695,10 +697,20 @@ class SeasonBrothScene: SKScene {
             SKAction.scale(to: 1.0, duration: 0.06)
         ]))
 
-        // Only show feedback for perfect score
+        // Visual effects based on score
+        let bowlPos = brothBowlFill.position
         if attemptScore >= 100 {
             showFeedback(text: "Perfect Harmony!", color: SKColor(red: 0.2, green: 0.9, blue: 0.35, alpha: 1.0), score: attemptScore)
+            burstParticles(at: bowlPos, count: 28, radius: 40...110)
+            expandingRing(at: bowlPos, color: SKColor(red: 0.3, green: 0.9, blue: 0.4, alpha: 0.6), targetScale: 5.0)
+            flashOverlay(color: SKColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1), alpha: 0.12, duration: 0.3)
+        } else if attemptScore >= 75 {
+            burstParticles(at: bowlPos, count: 14, radius: 25...60)
+        } else {
+            shakeCamera(intensity: 4)
+            flashOverlay(color: SKColor(red: 1.0, green: 0.1, blue: 0.1, alpha: 1), alpha: 0.08, duration: 0.2)
         }
+        floatingScoreText("Score: \(attemptScore)", at: bowlPos)
 
         // Bowl pulse effect on taste
         brothBowlFill.run(SKAction.sequence([

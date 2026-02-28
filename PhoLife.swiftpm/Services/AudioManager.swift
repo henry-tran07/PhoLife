@@ -334,6 +334,12 @@ final class AudioManager {
     /// Uses a pool of up to 8 players. If all are busy the oldest one is
     /// evicted and reused.
     func playSFX(_ filename: String) {
+        // Try synthesized SFX first
+        if SoundSynthesizer.shared.hasSound(filename) {
+            SoundSynthesizer.shared.play(filename, volume: sfxVolume)
+            return
+        }
+
         guard let newPlayer = loadPlayer(for: filename) else { return }
 
         newPlayer.numberOfLoops = 0

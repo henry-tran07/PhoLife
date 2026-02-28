@@ -65,6 +65,8 @@ class TopItOffScene: SKScene {
         setupCards()
         setupCollectBowl()
         setupAmbientParticles()
+        addVignette()
+        addAmbientParticles(color: SKColor(red: 0.60, green: 0.80, blue: 0.50, alpha: 1), birthRate: 1.5)
 
         // Scene entrance curtain
         let curtain = SKShapeNode(rectOf: CGSize(width: size.width + 20, height: size.height + 20))
@@ -556,6 +558,14 @@ class TopItOffScene: SKScene {
 
             HapticManager.shared.medium()
 
+            // Match visual effects
+            let midpoint = CGPoint(
+                x: (card1.position.x + card2.position.x) / 2,
+                y: (card1.position.y + card2.position.y) / 2
+            )
+            expandingRing(at: midpoint, color: matchGlowColor)
+            floatingScoreText("Matched!", at: midpoint)
+
             let capturedPairID = pairID1
             run(SKAction.sequence([
                 SKAction.wait(forDuration: 0.35),
@@ -574,6 +584,7 @@ class TopItOffScene: SKScene {
             ]))
         } else {
             // No match
+            shakeCamera(intensity: 5)
             run(SKAction.sequence([
                 SKAction.wait(forDuration: 1.0),
                 SKAction.run { [weak self] in

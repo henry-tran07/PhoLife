@@ -52,6 +52,7 @@ class CleanBonesScene: SKScene {
         setupTimerLabel()
         setupDecorations()
         setupAmbientGlow()
+        addAmbientParticles(color: SKColor(red: 1.0, green: 0.85, blue: 0.6, alpha: 1), birthRate: 1.0)
 
         gameActive = true
 
@@ -515,6 +516,9 @@ class CleanBonesScene: SKScene {
         bubble.removeAllActions()
 
         let bubblePosition = bubble.position
+
+        // Screen shake for missed bubble
+        shakeCamera(intensity: 4)
 
         // Small splatter particles
         spawnPopParticles(at: bubblePosition, color: bubble.fillColor, count: 4)
