@@ -108,7 +108,9 @@ struct StoryPanelView: View {
 
             // Dialogue box
             dialogueBox
-                .padding(.horizontal, 32)
+                .containerRelativeFrame(.horizontal) { length, _ in
+                    length * 0.75
+                }
                 .padding(.bottom, 32)
         }
         .onAppear { animateEntrance() }
