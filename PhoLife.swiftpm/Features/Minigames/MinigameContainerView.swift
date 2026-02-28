@@ -117,6 +117,7 @@ struct MinigameContainerView: View {
             case .intro:
                 sceneBlur = 3
                 AudioManager.shared.stopAmbient()
+                AudioManager.shared.duckMusic()
             case .playing:
                 sceneBlur = 0
             case .scoreReveal:
@@ -127,6 +128,9 @@ struct MinigameContainerView: View {
         .onAppear {
             // Start with blur since intro card is showing
             sceneBlur = 3
+        }
+        .onDisappear {
+            AudioManager.shared.unduckMusic()
         }
     }
 

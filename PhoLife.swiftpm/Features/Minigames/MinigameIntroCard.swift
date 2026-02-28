@@ -13,13 +13,20 @@ struct MinigameIntroCard: View {
     @State private var badgeVisible = false
     @State private var iconVisible = false
     @State private var titleVisible = false
-    @State private var descriptionVisible = false
-    @State private var hintVisible = false
+    @State private var dialogueVisible = false
     @State private var buttonVisible = false
     @State private var buttonPulse = false
     @State private var iconGlow = false
     @State private var shimmerOffset: CGFloat = -200
     @State private var particlePhase: CGFloat = 0
+
+    // Narrator dialogue state
+    @State private var dialogueSegmentIndex = 0
+    @State private var displayedCharCount = 0
+    @State private var isTypewriting = false
+    @State private var typewriterComplete = false
+    @State private var showTapIndicator = false
+    @State private var dialogueFinished = false
 
     // MARK: - Constants
 
@@ -59,6 +66,36 @@ struct MinigameIntroCard: View {
         "square.stack.3d.down.right",
         "leaf"
     ]
+
+    /// The two dialogue segments: cultural fact, then mechanic hint.
+    private var dialogueSegments: [String] {
+        let fact = (minigameIndex >= 0 && minigameIndex < CulturalFact.allFacts.count)
+            ? CulturalFact.allFacts[minigameIndex].fact
+            : "Prepare the next step."
+        let hint = mechanicHints[safe: minigameIndex] ?? "Follow the on-screen prompts."
+        return [fact, hint]
+    }
+
+    private var currentSegmentText: String {
+        guard dialogueSegmentIndex < dialogueSegments.count else { return "" }
+        return dialogueSegments[dialogueSegmentIndex]
+    }
+
+    private var currentExpression: NarratorExpression {
+        isTypewriting ? .speak : .happy
+    }
+
+    /// Typewriter attributed string — unrevealed characters are transparent for stable layout.
+    private var typewriterText: AttributedString {
+        let text = currentSegmentText
+        guard !text.isEmpty else { return AttributedString("") }
+        var result = AttributedString(text)
+        let total = text.count
+        guard displayedCharCount < total else { return result }
+        let visibleEnd = result.characters.index(result.startIndex, offsetBy: displayedCharCount)
+        result[visibleEnd..<result.endIndex].foregroundColor = .clear
+        return result
+    }
 
     // MARK: - Body
 
@@ -173,75 +210,87 @@ struct MinigameIntroCard: View {
                     .opacity(titleVisible ? 1 : 0)
                     .offset(y: titleVisible ? 0 : 12)
 
-                // Cooking step description
-                Text(descriptions[safe: minigameIndex] ?? "Prepare the next step.")
-                    .font(.system(size: 17, weight: .regular))
-                    .foregroundStyle(.white.opacity(0.85))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(5)
-                    .opacity(descriptionVisible ? 1 : 0)
-                    .offset(y: descriptionVisible ? 0 : 12)
+                // Narrator dialogue box
+                HStack(alignment: .bottom, spacing: 10) {
+                    NarratorPortraitView(expression: currentExpression, isSpeaking: isTypewriting)
+                        .frame(width: 100, height: 100)
 
-                // Divider with gradient
-                HStack(spacing: 0) {
-                    LinearGradient(colors: [Color.clear, warmAmber.opacity(0.35)], startPoint: .leading, endPoint: .trailing)
-                    LinearGradient(colors: [warmAmber.opacity(0.35), Color.clear], startPoint: .leading, endPoint: .trailing)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Narrator")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundStyle(warmAmber)
+
+                        Text(typewriterText)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.leading)
+                            .lineSpacing(3)
+
+                        if showTapIndicator {
+                            Text("\u{25BC}")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.white.opacity(0.6))
+                                .modifier(IntroCardPulseModifier())
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(height: 1)
                 .padding(.horizontal, 20)
-                .opacity(hintVisible ? 1 : 0)
-
-                // Mechanic hint with icon
-                Label(
-                    mechanicHints[safe: minigameIndex] ?? "Follow the on-screen prompts.",
-                    systemImage: "hand.tap"
-                )
-                .font(.system(size: 15, weight: .medium, design: .rounded))
-                .foregroundStyle(cream.opacity(0.6))
-                .multilineTextAlignment(.center)
-                .opacity(hintVisible ? 1 : 0)
-                .offset(y: hintVisible ? 0 : 10)
-
-                // Start button - premium warm gradient with pulse
-                Button {
-                    HapticManager.shared.heavy()
-                    AudioManager.shared.playSFX("button-tap")
-                    onStart()
-                } label: {
-                    Text("Start")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .tracking(0.5)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 52)
-                        .padding(.vertical, 15)
-                        .background(
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [warmAmber, deepAmber],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                                .shadow(color: warmAmber.opacity(buttonPulse ? 0.5 : 0.25), radius: buttonPulse ? 14 : 8, y: 3)
-                        )
-                        .overlay(
-                            Capsule()
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [cream.opacity(0.3), warmAmber.opacity(0.1)],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    ),
-                                    lineWidth: 1
-                                )
-                        )
+                .padding(.vertical, 16)
+                .glassContainer()
+                .opacity(dialogueVisible ? 1 : 0)
+                .offset(y: dialogueVisible ? 0 : 12)
+                .onTapGesture {
+                    handleDialogueTap()
                 }
-                .buttonStyle(WarmScaleButtonStyle())
-                .accessibilityLabel("Start minigame")
-                .padding(.top, 8)
-                .opacity(buttonVisible ? 1 : 0)
-                .scaleEffect(buttonVisible ? (buttonPulse ? 1.04 : 1.0) : 0.85)
+                .task(id: dialogueSegmentIndex) {
+                    await runTypewriter()
+                }
+
+                // Start button - premium warm gradient with pulse (shown after dialogue finishes)
+                if dialogueFinished {
+                    Button {
+                        HapticManager.shared.heavy()
+                        AudioManager.shared.playSFX("button-tap")
+                        onStart()
+                    } label: {
+                        Text("Start")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .tracking(0.5)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 52)
+                            .padding(.vertical, 15)
+                            .background(
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [warmAmber, deepAmber],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .shadow(color: warmAmber.opacity(buttonPulse ? 0.5 : 0.25), radius: buttonPulse ? 14 : 8, y: 3)
+                            )
+                            .overlay(
+                                Capsule()
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [cream.opacity(0.3), warmAmber.opacity(0.1)],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                    }
+                    .buttonStyle(WarmScaleButtonStyle())
+                    .accessibilityLabel("Start minigame")
+                    .padding(.top, 8)
+                    .opacity(buttonVisible ? 1 : 0)
+                    .scaleEffect(buttonVisible ? (buttonPulse ? 1.04 : 1.0) : 0.85)
+                    .transition(.opacity.combined(with: .scale(scale: 0.85)))
+                }
             }
             .padding(.horizontal, 36)
             .padding(.vertical, 32)
@@ -268,8 +317,7 @@ struct MinigameIntroCard: View {
             badgeVisible = false
             iconVisible = false
             titleVisible = false
-            descriptionVisible = false
-            hintVisible = false
+            dialogueVisible = false
             buttonVisible = false
             buttonPulse = false
             iconGlow = false
@@ -291,23 +339,12 @@ struct MinigameIntroCard: View {
                 titleVisible = true
             }
             withAnimation(.easeOut(duration: 0.4).delay(0.65)) {
-                descriptionVisible = true
-            }
-            withAnimation(.easeOut(duration: 0.35).delay(0.78)) {
-                hintVisible = true
-            }
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.9)) {
-                buttonVisible = true
+                dialogueVisible = true
             }
 
             // Icon glow breathing
             withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true).delay(0.6)) {
                 iconGlow = true
-            }
-
-            // Button pulse after it appears
-            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(1.3)) {
-                buttonPulse = true
             }
 
             // Particle drift
@@ -324,6 +361,67 @@ struct MinigameIntroCard: View {
             return "Cooking Step"
         }
         return CulturalFact.allFacts[minigameIndex].minigameTitle
+    }
+
+    // MARK: - Typewriter
+
+    private func runTypewriter() async {
+        let text = currentSegmentText
+        guard !text.isEmpty else { return }
+
+        displayedCharCount = 0
+        showTapIndicator = false
+        typewriterComplete = false
+        isTypewriting = true
+
+        // Wait for entrance animations
+        try? await Task.sleep(for: .milliseconds(400))
+
+        let totalChars = text.count
+        for i in 1...totalChars {
+            if Task.isCancelled { return }
+
+            if typewriterComplete {
+                displayedCharCount = totalChars
+                break
+            }
+
+            displayedCharCount = i
+            try? await Task.sleep(for: .milliseconds(25))
+        }
+
+        isTypewriting = false
+        typewriterComplete = true
+
+        try? await Task.sleep(for: .milliseconds(300))
+        if Task.isCancelled { return }
+
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showTapIndicator = true
+        }
+    }
+
+    // MARK: - Dialogue Tap
+
+    private func handleDialogueTap() {
+        if isTypewriting {
+            // Skip to full text
+            typewriterComplete = true
+        } else if dialogueSegmentIndex < dialogueSegments.count - 1 {
+            // Advance to next segment
+            showTapIndicator = false
+            dialogueSegmentIndex += 1
+        } else {
+            // Both segments done — show Start button
+            showTapIndicator = false
+            dialogueFinished = true
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                buttonVisible = true
+            }
+            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(0.3)) {
+                buttonPulse = true
+            }
+        }
     }
 }
 
@@ -353,6 +451,23 @@ struct WarmScaleButtonStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
             .brightness(configuration.isPressed ? -0.05 : 0)
             .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Pulse Modifier
+
+private struct IntroCardPulseModifier: ViewModifier {
+
+    @State private var pulsing = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(pulsing ? 0.3 : 1.0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                    pulsing = true
+                }
+            }
     }
 }
 

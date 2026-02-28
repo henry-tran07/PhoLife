@@ -44,6 +44,7 @@ final class AudioManager {
     // MARK: - Active Fade Timers
 
     private var musicFadeTimer: Timer?
+    private var musicDuckTimer: Timer?
     private var ambientFadeTimer: Timer?
 
     // MARK: - Init
@@ -268,6 +269,74 @@ final class AudioManager {
             self.musicPlayerA = nil
             self.musicPlayerB = nil
             self.musicFadeTimer = nil
+        }
+    }
+
+    /// Fade the active music player down to a quieter level.
+    func duckMusic(to volume: Float = 0.15, duration: TimeInterval = 0.5) {
+        musicDuckTimer?.invalidate()
+        musicDuckTimer = nil
+
+        let activePlayer = musicActiveIsA ? musicPlayerA : musicPlayerB
+        guard let activePlayer, activePlayer.isPlaying else { return }
+
+        let interval: TimeInterval = 0.05
+        let steps = max(Int(duration / interval), 1)
+        let startVolume = activePlayer.volume
+        let volumeStep = (startVolume - volume) / Float(steps)
+        let counter = StepCounter()
+
+        nonisolated(unsafe) let unsafePlayer = activePlayer
+        let target = volume
+
+        musicDuckTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+            counter.value += 1
+            let step = counter.value
+            let done = step >= steps
+            if done { timer.invalidate() }
+
+            MainActor.assumeIsolated {
+                let newVolume = max(startVolume - volumeStep * Float(step), target)
+                unsafePlayer.volume = newVolume
+
+                if done {
+                    unsafePlayer.volume = target
+                }
+            }
+        }
+    }
+
+    /// Restore the active music player back to full music volume.
+    func unduckMusic(duration: TimeInterval = 0.5) {
+        musicDuckTimer?.invalidate()
+        musicDuckTimer = nil
+
+        let activePlayer = musicActiveIsA ? musicPlayerA : musicPlayerB
+        guard let activePlayer, activePlayer.isPlaying else { return }
+
+        let interval: TimeInterval = 0.05
+        let steps = max(Int(duration / interval), 1)
+        let startVolume = activePlayer.volume
+        let target = musicVolume
+        let volumeStep = (target - startVolume) / Float(steps)
+        let counter = StepCounter()
+
+        nonisolated(unsafe) let unsafePlayer = activePlayer
+
+        musicDuckTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+            counter.value += 1
+            let step = counter.value
+            let done = step >= steps
+            if done { timer.invalidate() }
+
+            MainActor.assumeIsolated {
+                let newVolume = min(startVolume + volumeStep * Float(step), target)
+                unsafePlayer.volume = newVolume
+
+                if done {
+                    unsafePlayer.volume = target
+                }
+            }
         }
     }
 
