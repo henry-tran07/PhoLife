@@ -216,7 +216,7 @@ struct MinigameIntroCard: View {
                         .frame(width: 100, height: 100)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Narrator")
+                        Text("Khoa")
                             .font(.custom("SFCompactRounded-Bold", size: 16))
                             .foregroundStyle(warmAmber)
 

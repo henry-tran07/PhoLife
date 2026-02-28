@@ -37,7 +37,10 @@ struct StoryPanel: Identifiable {
             imageName: "story-panel-1",
             ambientAudioFile: nil,
             expression: .happy,
-            dialogueSegments: []
+            dialogueSegments: [
+                DialogueSegment(id: 1, text: "I'm Khoa Nguyen, from Đà Nẵng.", expression: .happy),
+                DialogueSegment(id: 2, text: "Let me tell you how phở came to be.", expression: .speak),
+            ]
         ),
         StoryPanel(
             id: 2,

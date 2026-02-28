@@ -29,6 +29,8 @@ struct CompletionView: View {
     @State private var buttonPulse = false
     @State private var ambientGlow = false
     @State private var confettiActive = false
+    @State private var narratorVisible = false
+    @State private var showResults = false
 
     // MARK: - Computed
 
@@ -48,32 +50,34 @@ struct CompletionView: View {
         ZStack {
             backgroundLayer
 
-            if overallStars >= 2 {
-                confettiLayer
+            if !showResults {
+                narratorConclusionLayer
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
 
-            HStack(spacing: 0) {
-                // Left panel — Performance
-                performancePanel
-                    .frame(width: 280)
-                    .padding(.leading, 24)
+            if showResults {
+                if overallStars >= 2 {
+                    confettiLayer
+                }
 
-                Spacer()
-
-                // Center — Hero bowl
-                centerColumn
-                    .frame(maxWidth: 340)
-
-                Spacer()
-
-                // Right panel — Ingredients
-                ingredientsPanel
-                    .frame(width: 280)
-                    .padding(.trailing, 24)
+                HStack(spacing: 0) {
+                    performancePanel
+                        .frame(width: 280)
+                        .padding(.leading, 24)
+                    Spacer()
+                    centerColumn
+                        .frame(maxWidth: 340)
+                    Spacer()
+                    ingredientsPanel
+                        .frame(width: 280)
+                        .padding(.trailing, 24)
+                }
+                .padding(.vertical, 24)
+                .transition(.opacity)
             }
-            .padding(.vertical, 24)
         }
-        .onAppear { startRevealSequence() }
+        .animation(.smooth(duration: 0.7), value: showResults)
+        .onAppear { startNarratorReveal() }
         .transition(.opacity)
     }
 
@@ -106,6 +110,47 @@ struct CompletionView: View {
                 endRadius: 300
             )
             .ignoresSafeArea()
+        }
+    }
+
+    // MARK: - Narrator Conclusion
+
+    private var narratorConclusionLayer: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            NarratorPortraitView(expression: .happy, isSpeaking: false)
+                .frame(width: 160, height: 160)
+
+            VStack(alignment: .center, spacing: 6) {
+                Text("Khoa")
+                    .font(.custom("SFCompactRounded-Bold", size: 18))
+                    .foregroundStyle(warmAmber)
+
+                Text("Your bowl is complete. Every great meal carries a story — now this one is yours.")
+                    .font(.custom("SFCompactRounded-Medium", size: 22))
+                    .foregroundStyle(cream)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+            .padding(.horizontal, 32)
+            .padding(.vertical, 20)
+            .frame(maxWidth: 500)
+            .glassContainer()
+
+            Text("▼")
+                .font(.custom("SFCompactRounded-Regular", size: 16))
+                .foregroundStyle(.white.opacity(0.6))
+                .modifier(CompletionPulseModifier())
+                .padding(.top, 8)
+
+            Spacer()
+        }
+        .opacity(narratorVisible ? 1 : 0)
+        .scaleEffect(narratorVisible ? 1.0 : 0.9)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            transitionToResults()
         }
     }
 
@@ -382,11 +427,29 @@ struct CompletionView: View {
 
     // MARK: - Reveal Sequence
 
-    private func startRevealSequence() {
-        // 0.0s — ambient glow
+    private func startNarratorReveal() {
+        // Ambient glow
         withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
             ambientGlow = true
         }
+        // Narrator entrance
+        withAnimation(.spring(duration: 0.6, bounce: 0.15).delay(0.3)) {
+            narratorVisible = true
+        }
+    }
+
+    private func transitionToResults() {
+        HapticManager.shared.medium()
+        withAnimation {
+            showResults = true
+        }
+        // Delay results reveal sequence to let transition settle
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            startRevealSequence()
+        }
+    }
+
+    private func startRevealSequence() {
         // 0.3s — bowl
         withAnimation(.spring(duration: 0.8, bounce: 0.3)) {
             bowlVisible = true
@@ -432,6 +495,22 @@ struct CompletionView: View {
         withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true).delay(2.0)) {
             buttonPulse = true
         }
+    }
+}
+
+// MARK: - Completion Pulse Modifier
+
+private struct CompletionPulseModifier: ViewModifier {
+    @State private var pulsing = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(pulsing ? 0.3 : 1.0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                    pulsing = true
+                }
+            }
     }
 }
 

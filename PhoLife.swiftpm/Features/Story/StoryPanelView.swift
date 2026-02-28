@@ -134,7 +134,7 @@ struct StoryPanelView: View {
 
             // Text content
             VStack(alignment: .leading, spacing: 6) {
-                Text("Narrator")
+                Text("Khoa")
                     .font(.custom("SFCompactRounded-Bold", size: 18))
                     .foregroundStyle(warmAmber)
 
