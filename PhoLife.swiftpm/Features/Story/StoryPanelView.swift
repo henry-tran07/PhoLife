@@ -69,7 +69,7 @@ struct StoryPanelView: View {
 
             // Small narrator peek at bottom
             NarratorPortraitView(expression: panel.expression, isSpeaking: false)
-                .frame(width: 80, height: 80)
+                .frame(width: 120, height: 120)
                 .opacity(titleVisible ? 1 : 0)
                 .animation(.spring(duration: 0.6).delay(0.2), value: titleVisible)
                 .padding(.bottom, 48)
@@ -128,18 +128,18 @@ struct StoryPanelView: View {
                 expression: currentSegment?.expression ?? panel.expression,
                 isSpeaking: isTypewriting
             )
-            .frame(width: 100, height: 100)
+            .frame(width: 140, height: 140)
             .opacity(dialogueVisible ? 1 : 0)
             .animation(.spring(duration: 0.6).delay(0.2), value: dialogueVisible)
 
             // Text content
             VStack(alignment: .leading, spacing: 6) {
                 Text("Narrator")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(warmAmber)
 
                 Text(typewriterText)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 30, weight: .medium))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.leading)
                     .lineSpacing(4)
@@ -155,8 +155,8 @@ struct StoryPanelView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 20)
+        .padding(.horizontal, 28)
+        .padding(.vertical, 24)
         .glassContainer()
         .opacity(dialogueVisible ? 1 : 0)
         .offset(y: dialogueVisible ? 0 : 30)
