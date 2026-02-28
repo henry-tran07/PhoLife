@@ -125,7 +125,7 @@ struct StoryPanelView: View {
         HStack(alignment: .bottom, spacing: 12) {
             // Narrator portrait
             NarratorPortraitView(
-                expression: currentSegment?.expression ?? panel.expression,
+                expression: isTypewriting ? .speak : .happy,
                 isSpeaking: isTypewriting
             )
             .frame(width: 140, height: 140)
