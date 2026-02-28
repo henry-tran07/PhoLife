@@ -16,7 +16,6 @@ struct MinigameScoreCard: View {
     @State private var starsVisible = false
     @State private var scoreVisible = false
     @State private var headerVisible = false
-    @State private var factVisible = false
     @State private var buttonVisible = false
     @State private var buttonPulse = false
     @State private var starGlow = false
@@ -128,34 +127,6 @@ struct MinigameScoreCard: View {
                 .opacity(scoreVisible ? 1 : 0)
                 .scaleEffect(scoreVisible ? 1 : 0.85)
 
-                // Cultural fact in distinct container
-                VStack(spacing: 8) {
-                    // Small decorative icon
-                    Image(systemName: "quote.opening")
-                        .font(.system(size: 14))
-                        .foregroundStyle(warmAmber.opacity(0.4))
-
-                    Text(culturalFact)
-                        .font(.system(size: 15, weight: .regular).italic())
-                        .foregroundStyle(cream.opacity(0.8))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(5)
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(warmAmber.opacity(0.06))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(warmAmber.opacity(0.12), lineWidth: 1)
-                        )
-                )
-                .padding(.horizontal, 4)
-                .opacity(factVisible ? 1 : 0)
-                .offset(y: factVisible ? 0 : 15)
-
                 // Continue button - matching IntroCard premium style
                 Button {
                     HapticManager.shared.heavy()
@@ -223,7 +194,6 @@ struct MinigameScoreCard: View {
             starsVisible = false
             scoreVisible = false
             headerVisible = false
-            factVisible = false
             buttonVisible = false
             buttonPulse = false
             starGlow = false
@@ -243,10 +213,7 @@ struct MinigameScoreCard: View {
             withAnimation(.spring(response: 0.45, dampingFraction: 0.7).delay(1.6)) {
                 headerVisible = true
             }
-            withAnimation(.easeOut(duration: 0.5).delay(2.1)) {
-                factVisible = true
-            }
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(2.5)) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(2.1)) {
                 buttonVisible = true
             }
 
@@ -256,7 +223,7 @@ struct MinigameScoreCard: View {
             }
 
             // Button pulse after it appears
-            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(2.9)) {
+            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(2.5)) {
                 buttonPulse = true
             }
 
@@ -345,12 +312,6 @@ struct MinigameScoreCard: View {
         }
     }
 
-    private var culturalFact: String {
-        guard minigameIndex >= 0, minigameIndex < CulturalFact.allFacts.count else {
-            return ""
-        }
-        return CulturalFact.allFacts[minigameIndex].fact
-    }
 }
 
 // MARK: - Preview
