@@ -20,11 +20,13 @@ third-party dependencies. Winner of Apple's Swift Student Challenge 2026.
 
 ## 📸 Screenshots
 
-> _Media coming soon._
+| Splash | Story |
+| :---: | :---: |
+| ![Splash screen](docs/media/splash.png) | ![Story narration](docs/media/story.png) |
 
-| Splash | Story | Minigame | Completion |
-| :---: | :---: | :---: | :---: |
-| _`docs/media/splash.png`_ | _`docs/media/story.png`_ | _`docs/media/minigame.png`_ | _`docs/media/completion.png`_ |
+| Minigame intro | In the kitchen | Your finished bowl |
+| :---: | :---: | :---: |
+| ![Minigame intro card](docs/media/minigame.png) | ![Simmering the broth](docs/media/gameplay.png) | ![Completion screen](docs/media/completion.png) |
 
 ## How It Plays
 
